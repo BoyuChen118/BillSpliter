@@ -10,4 +10,4 @@ def current_datetime(request):
 
 
 def login(request):
-    return render(request, 'BillSplitterApp/login-form-v1/login_v1/index.html')
+    return render(request, 'index.html')
