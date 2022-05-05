@@ -1,3 +1,4 @@
+from cmath import e
 from pymongo import MongoClient
 from BillSplitter.strings import mongo_secret
 import pymongo
@@ -40,7 +41,7 @@ class Authenticator:
                 'users', {'_id': email, 'password': p, 'nickname': nickname, 'groups': []})
             self.email = email
             return (True, None)
-        except:
+        except Exception:
             return (False, 'Account with this email already exists')
 
     def login(self, email, p):
@@ -55,15 +56,24 @@ class Authenticator:
     # get groups the user belongs to
     def get_groups(self):
         ret = []
-        groupcodes = self.db.storage.get_collection('users').find_one({'_id': self.email})['groups']
+        groupcodes = self.db.storage.get_collection(
+            'users').find_one({'_id': self.email})['groups']
         for groupcode in groupcodes:
-            ret.append(self.db.storage.get_collection('groups').find_one({'_id': groupcode})['name'])
+            ret.append(self.db.storage.get_collection(
+                'groups').find_one({'_id': groupcode})['name'])
         return ret
-            
 
+    def get_group_count(self):
+        return len(self.get_groups)
+
+    # retrieve groupcode given name
+    def get_group_code(self, groupindex: int):
+        return self.db.storage.get_collection('users').find_one({'_id': self.email})['groups'][groupindex]
     # get the display name of the user
+
     def get_name(self):
-        doc = self.db.storage.get_collection('users').find_one({'_id': self.email})
+        doc = self.db.storage.get_collection(
+            'users').find_one({'_id': self.email})
         return doc['nickname']
 
     # generate a 8 digit code and create a group with that code
@@ -75,16 +85,36 @@ class Authenticator:
             'groups', {'_id': randomcode, 'name': groupname, 'members': [], 'ledger': []})
         self.join_group(randomcode)
 
-
     def join_group(self, groupcode):
-        useradded = self.db.storage.get_collection('users').find_one({'_id': self.email, "groups": {'$in': [groupcode]}})
-        groupadded = self.db.storage.get_collection('groups').find_one({'_id': groupcode, "members": {'$in': [self.email]}})
+        useradded = self.db.storage.get_collection('users').find_one(
+            {'_id': self.email, "groups": {'$in': [groupcode]}})
+        groupadded = self.db.storage.get_collection('groups').find_one(
+            {'_id': groupcode, "members": {'$in': [self.email]}})
         if useradded or groupadded:
             return "You're already part of this group"
         else:
-            self.db.storage.get_collection( # add new group code to groups
+            self.db.storage.get_collection(  # add new group code to groups
                 'users').find_one_and_update({'_id': self.email}, {'$push': {"groups": groupcode}})
             # add member to group members field
             self.db.storage.get_collection(
                 'groups').find_one_and_update({'_id': groupcode}, {'$push': {"members": self.email}})
-        
+
+
+class PageGenerator:
+    def __init__(self, authenticator: Authenticator):
+        self.auth = authenticator
+
+    def generatepages(self, page, groupindex):
+        pages = [False for i in range(5)]
+        if page == 'home':
+            pages[0] = True
+        elif page == 'about':
+            pages[1] = True
+        elif page == 'profile':
+            pages[2] = True
+        elif page == 'contact':
+            pages[3] = True
+        else:   # if the page active is a groups page
+            pages[4] = self.auth.get_group_code(groupindex)
+            
+        return pages

@@ -16,6 +16,36 @@ p {
     color: #999;
 }
 
+.btn-info {
+    background-color: black;
+    border-color: black;
+}
+.btn-info:hover {
+    color: black;
+    background-color: white;
+    border-color: black;
+  }
+
+.btn-info:focus, .btn-info.focus {
+    box-shadow: 0 0 0 0.2rem black;
+}
+
+.btn-info:visited {
+    background-color: black;
+}
+
+.btn-info:active{
+  background-color: black;
+  border-color: black;
+}
+
+.btn-info:not(:disabled):not(.disabled):active, .show>.btn-info.dropdown-toggle {
+    color: #fff;
+    background-color: black;
+    border-color: black;
+}
+
+
 a,
 a:hover,
 a:focus {

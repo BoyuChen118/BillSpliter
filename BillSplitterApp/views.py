@@ -1,11 +1,12 @@
 from django.shortcuts import redirect, render
 from django.http import HttpResponse
+from urllib3 import HTTPResponse
 import BillSplitterApp.backend.mongodb as backendservice
 import datetime
 
-# test with current_datetime
-
+# initialize auth
 auth = backendservice.Authenticator()
+
 def current_datetime(request):
     now = datetime.datetime.now()
     html = "<html><body>It is now %s.</body></html>" % now
@@ -21,7 +22,7 @@ def login(request):
         if not auth_success:
             return render(request, 'login.html', {'auth_success': auth_success})
         else:
-            response = redirect(f'/landing/?name={auth.get_name()}&groups=')
+            response = redirect(f'/landing/home/')
             return response
     return render(request, 'login.html')
 
@@ -37,21 +38,26 @@ def signup(request):
         if not auth_success[0]:
             return render(request, 'signup.html', {'auth_success': auth_success[0], 'reason': auth_success[1]})
         else:
-            response = redirect(f'/landing/?name={auth.get_name(email)}')
+            response = redirect(f'/landing/home/')
             return response
     return render(request, 'signup.html')
 
-def landing(request):
+# view to display when user clicks on one specific group (e.g. group code, members etc.)
+def landing(request, **kwargs):
+    page = kwargs.get('page', None)
+    # user is accessing groups[groupindex] at landing page
+    groupindex = kwargs.get('groupindex', None)
+    groupindex = int(groupindex) if groupindex is not None else None
     data = request.GET
     if 'groupname' in data:   # create group operation
         auth.create_group(data.get('groupname'))
     elif 'groupcode' in data:   # join group operation
         errormsg = auth.join_group(data.get('groupcode'))
-    groups = auth.get_groups()
+    groups = auth.get_groups() # all group names the user belongs to
     name = auth.get_name()
-    return render(request, 'landing.html', {'groups': groups, 'name': name})
+    
+    pages = backendservice.PageGenerator(auth).generatepages(page, groupindex)  # represent state of all page, false=page is not on display, true=page is on display.  [home, about, profile, contact, groups]
+    return render(request, 'landing.html', {'groups': groups, 'name': name, 'pages': pages})
 
-# view to display when user clicks on one specific group
-def grouppage(request):
-    pass
+
     
