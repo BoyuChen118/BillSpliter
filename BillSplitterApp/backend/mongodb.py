@@ -66,9 +66,20 @@ class Authenticator:
     def get_group_count(self):
         return len(self.get_groups)
 
-    # retrieve groupcode given name
+    # retrieve groups[groupindex]
     def get_group_code(self, groupindex: int):
         return self.db.storage.get_collection('users').find_one({'_id': self.email})['groups'][groupindex]
+
+    # retrieve all member names and emails of groups[groupindex]
+    def get_group_members(self, groupcode: str):
+        memberemails = self.db.storage.get_collection(
+            'groups').find_one({'_id': groupcode})['members']
+        memberinfo = []  # in the form of [membername, memberemail]
+        for memberemail in memberemails:
+            memberinfo.append([self.db.storage.get_collection(
+                'users').find_one({'_id': memberemail})['nickname'], memberemail])
+        return memberinfo
+
     # get the display name of the user
 
     def get_name(self):
@@ -116,5 +127,5 @@ class PageGenerator:
             pages[3] = True
         else:   # if the page active is a groups page
             pages[4] = self.auth.get_group_code(groupindex)
-            
+
         return pages

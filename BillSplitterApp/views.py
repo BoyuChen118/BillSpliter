@@ -56,8 +56,11 @@ def landing(request, **kwargs):
     groups = auth.get_groups() # all group names the user belongs to
     name = auth.get_name()
     
-    pages = backendservice.PageGenerator(auth).generatepages(page, groupindex)  # represent state of all page, false=page is not on display, true=page is on display.  [home, about, profile, contact, groups]
-    return render(request, 'landing.html', {'groups': groups, 'name': name, 'pages': pages})
-
-
+    pages = backendservice.PageGenerator(auth).generatepages(page, groupindex)  # represent state of all page, false=page is not on display, true=page is on display.  [home, about, profile, contact, groupcode]
+    groupinfo = []
     
+    # handle group page request pages[4] is current group code
+    if pages[4]:
+        groupinfo = auth.get_group_members(pages[4])   # array of [membername, memberemail]
+
+    return render(request, 'landing.html', {'groups': groups, 'name': name, 'pages': pages, 'groupmembers': groupinfo})
