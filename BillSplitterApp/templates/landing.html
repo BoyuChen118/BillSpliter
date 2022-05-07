@@ -1,278 +1,401 @@
 <!DOCTYPE html>
 <html>
-
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
     <title>BillSplitter</title>
 
     <!-- Bootstrap CSS CDN -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css"
+      integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4"
+      crossorigin="anonymous"
+    />
     <!-- Our Custom CSS -->
-    <link rel="stylesheet" href="/static/css/style4.css">
+    <link rel="stylesheet" href="/static/css/style4.css" />
 
     <!-- Font Awesome JS -->
-    <script defer src="https://use.fontawesome.com/releases/v5.0.13/js/solid.js" integrity="sha384-tzzSw1/Vo+0N5UhStP3bvwWPq+uvzCMfrN1fEFe+xBmv1C/AtVX5K0uZtmcHitFZ" crossorigin="anonymous"></script>
-    <script defer src="https://use.fontawesome.com/releases/v5.0.13/js/fontawesome.js" integrity="sha384-6OIrr52G08NpOFSZdxxz1xdNSndlD4vdcf/q2myIUVO0VsqaGHJsB0RaBE01VTOY" crossorigin="anonymous"></script>
+    <script
+      defer
+      src="https://use.fontawesome.com/releases/v5.0.13/js/solid.js"
+      integrity="sha384-tzzSw1/Vo+0N5UhStP3bvwWPq+uvzCMfrN1fEFe+xBmv1C/AtVX5K0uZtmcHitFZ"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      defer
+      src="https://use.fontawesome.com/releases/v5.0.13/js/fontawesome.js"
+      integrity="sha384-6OIrr52G08NpOFSZdxxz1xdNSndlD4vdcf/q2myIUVO0VsqaGHJsB0RaBE01VTOY"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://use.fontawesome.com/releases/v6.1.1/css/all.css"
+      integrity="sha384-Bfad6CLCknfcloXFOyFnlgtENryhrpZCe29RTifKEixXQZ38WheV+i/6YWSzkz3V"
+      crossorigin="anonymous"
+    />
+  </head>
 
-</head>
-
-<body>
-
+  <body>
     <div class="wrapper">
-        <!-- Sidebar  -->
-        <nav id="sidebar">
-            <div class="sidebar-header">
-                <h3>BillSplitter</h3>
-                <strong>BS</strong>
+      <!-- Sidebar  -->
+      <nav id="sidebar">
+        <div class="sidebar-header">
+          <h3>BillSplitter</h3>
+          <strong>BS</strong>
+        </div>
+
+        <ul class="list-unstyled components">
+          {% if pages.0 %}
+          <li class="active">
+            <a href="/landing/home">
+              <i class="fas fa-home"></i>
+              Home
+            </a>
+          </li>
+          {% else %}
+          <li>
+            <a href="/landing/home">
+              <i class="fas fa-home"></i>
+              Home
+            </a>
+          </li>
+          {% endif %} {% if pages.1 %}
+          <li class="active">
+            <a href="/landing/about">
+              <i class="fas fa-briefcase"></i>
+              About
+            </a>
+          </li>
+          {% else %}
+          <li>
+            <a href="/landing/about">
+              <i class="fas fa-briefcase"></i>
+              About
+            </a>
+          </li>
+          {% endif %}
+          <li>
+            <a
+              href="#pageSubmenu"
+              data-toggle="collapse"
+              aria-expanded="false"
+              class="dropdown-toggle"
+            >
+              <i class="fa fa-users"></i>
+              Groups
+            </a>
+          </li>
+          {% if pages.4 %}
+          <li>
+            <ul class="list-unstyled" id="pageSubmenu">
+              {% for group in groups %}
+              <li>
+                <a href="/landing/groups/{{ forloop.counter0 }}">{{ group }}</a>
+              </li>
+              {% endfor %}
+            </ul>
+          </li>
+          {% else %}
+          <li>
+            <ul class="collapse list-unstyled" id="pageSubmenu">
+              {% for group in groups %}
+              <li>
+                <a href="/landing/groups/{{ forloop.counter0 }}">{{ group }}</a>
+              </li>
+              {% endfor %}
+            </ul>
+          </li>
+          {% endif %} {% if pages.2 %}
+          <li class="active">
+            <a href="#">
+              <i class="fa fa-user"></i>
+              Profile
+            </a>
+          </li>
+          {% else %}
+          <li>
+            <a href="/landing/profile">
+              <i class="fa fa-user"></i>
+              Profile
+            </a>
+          </li>
+          {% endif %} {% if pages.3 %}
+          <li class="active">
+            <a href="/landing/contact">
+              <i class="fas fa-paper-plane"></i>
+              Contact
+            </a>
+          </li>
+          {% else %}
+          <li>
+            <a href="/landing/contact">
+              <i class="fas fa-paper-plane"></i>
+              Contact
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+
+        <ul class="list-unstyled CTAs">
+          <li>
+            <a href="https://bootstrapious.com/tutorial/files/sidebar.zip"
+              ><i class="fa fa-power-off" id="poweroff"></i> LOGOUT</a
+            >
+          </li>
+        </ul>
+      </nav>
+      {% if pages.0 %}
+      <!-- home page  -->
+      <div id="content">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <div class="container-fluid">
+            <button type="button" id="sidebarCollapse" class="btn btn-info">
+              <i class="fas fa-align-left"></i>
+              <span>Toggle Sidebar</span>
+            </button>
+            {% comment %}
+            <button
+              class="btn btn-dark d-inline-block d-lg-none ml-auto"
+              type="button"
+              data-toggle="collapse"
+              data-target="#navbarSupportedContent"
+              aria-controls="navbarSupportedContent"
+              aria-expanded="false"
+              aria-label="Toggle navigation"
+            >
+              <i class="fas fa-align-justify"></i>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+              <ul class="nav navbar-nav ml-auto">
+                <li class="nav-item active">
+                  <a class="nav-link" href="#">Page</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#">Page</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#">Page</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#">Page</a>
+                </li>
+              </ul>
             </div>
-
-            <ul class="list-unstyled components">
-                {% if pages.0 %}
-                <li class="active">
-                    <a href="/landing/home">
-                        <i class="fas fa-home"></i>
-                        Home
-                    </a>
-                </li>
-                {% else %}
-                <li>
-                    <a href="/landing/home">
-                        <i class="fas fa-home"></i>
-                        Home
-                    </a>
-                </li>
-                {% endif %}
-                {% if pages.1 %}
-                <li class="active">
-                    <a href="/landing/about">
-                        <i class="fas fa-briefcase"></i>
-                        About
-                    </a>
-                </li>
-                {% else %}
-                <li>
-                    <a href="/landing/about">
-                        <i class="fas fa-briefcase"></i>
-                        About
-                    </a>
-                </li>
-                {% endif %}
-                <li>
-                    <a href="#pageSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                        <i class="fa fa-users"></i>
-                        Groups
-                    </a>
-                </li>
-                {% if pages.4 %}
-                <li>
-                    <ul class="list-unstyled" id="pageSubmenu">
-                        {% for group in groups %}
-                        <li>
-                            <a href="/landing/groups/{{ forloop.counter0 }}">{{ group }}</a>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </li>
-                {% else %}
-                <li>
-                    <ul class="collapse list-unstyled" id="pageSubmenu">
-                        {% for group in groups %}
-                        <li>
-                            <a href="/landing/groups/{{ forloop.counter0 }}">{{ group }}</a>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </li>
-                {% endif %}
-                {% if pages.2 %}
-                <li class="active">
-                    <a href="#">
-                        <i class="fa fa-user"></i>
-                        Profile
-                    </a>
-                </li>
-                {% else %}
-                <li>
-                    <a href="/landing/profile">
-                        <i class="fa fa-user"></i>
-                        Profile
-                    </a>
-                </li>
-                {% endif %}
-                {% if pages.3 %}
-                <li class="active">
-                    <a href="/landing/contact">
-                        <i class="fas fa-paper-plane"></i>
-                        Contact
-                    </a>
-                </li>
-                {% else %}
-                <li>
-                    <a href="/landing/contact">
-                        <i class="fas fa-paper-plane"></i>
-                        Contact
-                    </a>
-                </li>
-                {% endif %}
-            </ul>
-
-            <ul class="list-unstyled CTAs">
-                <li>
-                    <a href="https://bootstrapious.com/tutorial/files/sidebar.zip" ><i class="fa fa-power-off" id="poweroff"></i>  LOGOUT</a>
-                </li>
-            </ul>
+            {% endcomment %}
+          </div>
         </nav>
-        {% if pages.0 %}
-        <!-- home page  -->
-        <div id="content">
 
-            <nav class="navbar navbar-expand-lg navbar-light bg-light">
-                <div class="container-fluid">
-
-                    <button type="button" id="sidebarCollapse" class="btn btn-info">
-                        <i class="fas fa-align-left"></i>
-                        <span>Toggle Sidebar</span>
-                    </button>
-                    {% comment %} <button class="btn btn-dark d-inline-block d-lg-none ml-auto" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                        <i class="fas fa-align-justify"></i>
-                    </button>
-
-                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                        <ul class="nav navbar-nav ml-auto">
-                            <li class="nav-item active">
-                                <a class="nav-link" href="#">Page</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">Page</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">Page</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">Page</a>
-                            </li>
-                        </ul>
-                    </div> {% endcomment %}
-                </div>
-            </nav>
-
-            <h2>Welcome! {{ name }}</h2>
-            <div class="line"></div>
+        <h2>Welcome! {{ name }}</h2>
+        <div class="line"></div>
         <center>
-            <h2 style="margin-bottom:2em;">Join Group</h2>
-            <form action=''>
+          <h2 style="margin-bottom: 2em">Join Group</h2>
+          <form action="">
             <input
-                class="input100"
-                type="text"
-                name="groupcode"
-                placeholder="GroupCode"
-              />
-            <button type="submit" class="btn btn-dark" >+</button>
-            </form>
+              class="input100"
+              type="text"
+              name="groupcode"
+              placeholder="GroupCode"
+            />
+            <button type="submit" class="btn btn-dark">+</button>
+          </form>
         </center>
 
-            <div class="line"></div>
-            <center>
-                <h2 style="margin-bottom:2em;">Create Group</h2>
-                <form class="login100-form validate-form" action=''>
-                    <input
+        <div class="line"></div>
+        <center>
+          <h2 style="margin-bottom: 2em">Create Group</h2>
+          <form class="login100-form validate-form" action="">
+            <input
+              class="input100"
+              type="text"
+              name="groupname"
+              placeholder="GroupName"
+            />
+            <button type="submit" class="btn btn-dark">+</button>
+          </form>
+        </center>
+
+        <div class="line"></div>
+      </div>
+
+      {% elif pages.1 %}
+      <!-- about page  -->
+      <div id="content">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <div class="container-fluid">
+            <button type="button" id="sidebarCollapse" class="btn btn-info">
+              <i class="fas fa-align-left"></i>
+              <span>Toggle Sidebar</span>
+            </button>
+          </div>
+        </nav>
+
+        <h2>About BillSplitter</h2>
+        <p>A web app that splits bills.</p>
+        <p>
+          A positive in amount due means you owe the person listed x dollar and
+          if x is negative it means he/she owes you |x| dollar
+        </p>
+        <div class="line"></div>
+      </div>
+      <!-- group page  -->
+      {% elif pages.4 %}
+      <div id="content">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <div class="container-fluid">
+            <button type="button" id="sidebarCollapse" class="btn btn-info">
+              <i class="fas fa-align-left"></i>
+              <span>Toggle Sidebar</span>
+            </button>
+          </div>
+        </nav>
+
+        <h2>Code: {{ pages.4 }}</h2>
+        <div class="line"></div>
+        <h2>Add Expense</h2>
+        <div class="expensefield">
+          <form action="" method="post"> {% csrf_token %}
+            <div class="expensesfields">
+              <input
                 class="input100"
                 type="text"
-                name="groupname"
-                placeholder="GroupName"
+                name="expensename"
+                placeholder="ExpenseName"
               />
-                <button type="submit" class="btn btn-dark" >+</button>
-                </form>
-            </center>
+              <select class="form-select form-select-sm">
+                <option value="1" selected>Evenly split with everyone</option>
+                <option value="2">
+                  Let each person select what they bought
+                </option>
+              </select>
+            </div>
+        <!-- group page: temp expenses submitted  -->
+        {% for tempitem in tempexpenses %}
+            <div class="expensesfields">
+              <input
+                class="iteminput"
+                type="text"
+                name="itemname"
+                value="{{ tempitem.itemname }}"
+              />
+              <input
+                class="iteminput"
+                type="text"
+                name="itemprice"
+                value="${{ tempitem.itemprice }}"
+              />
+              <select name= "itemquantity" class="form-select form-select-sm">
+                <option value="0">Select item quantity</option>
+                {% with ''|center:100 as range %} 
+                {% for _ in range %}
+                {% if forloop.counter == tempitem.itemquantity%}
+                <option value="{{ forloop.counter }}" selected >{{ forloop.counter }}</option>
+                {% else %}
+                <option value="{{ forloop.counter }}">{{ forloop.counter }}</option>
+                {% endif %}
+                {% endfor %} 
+                {% endwith %}
+              </select>
 
-            <div class="line"></div>
+              
+              <button name="deleteitem{{forloop.counter0}}" type="submit" class="btn btn-dark">&#x2718; </button>
+            </div>
+        {% endfor %}
 
+        <!-- group page: new temp expense  -->
+        <div class="expensesfields">
+            <input
+              class="iteminput"
+              type="text"
+              name="itemname"
+              placeholder="itemname"
+            />
+            <input
+              class="iteminput"
+              type="text"
+              name="itemprice"
+              placeholder="itemprice"
+            />
+            <select name= "itemquantity" class="form-select form-select-sm">
+              <option value="0">Select item quantity</option>
+              {% with ''|center:100 as range %} 
+              {% for _ in range %}
+              {% if forloop.counter == 1%}
+              <option value="{{ forloop.counter }}" selected >{{ forloop.counter }}</option>
+              {% else %}
+              <option value="{{ forloop.counter }}">{{ forloop.counter }}</option>
+              {% endif %}
+              {% endfor %} 
+              {% endwith %}
+            </select>
+
+            <button name="submititem" value="." type="submit" class="btn btn-dark">&#x2714;</button>
         </div>
 
-        {% elif pages.1  %}
-        <!-- about page  -->
-        <div id="content">
 
-            <nav class="navbar navbar-expand-lg navbar-light bg-light">
-                <div class="container-fluid">
-
-                    <button type="button" id="sidebarCollapse" class="btn btn-info">
-                        <i class="fas fa-align-left"></i>
-                        <span>Toggle Sidebar</span>
-                    </button>
-
-                </div>
-            </nav>
-
-            <h2>About BillSplitter</h2>
-            <p>A web app that splits bills.</p>
-            <p>A positive in amount due means you owe the person listed x dollar and if x is negative it means he/she owes you |x| dollar</p>
-            <div class="line"></div>
-
+            <!-- group page: temp expenses submit and reset buttons  -->
+            <button name="submitexpense" value="." type="submit" class="btn btn-dark">Submit</button>
+            <button type="reset" class="btn btn-dark">Cancel</button>
+          </form>
         </div>
-        <!-- group page  -->
-        {% elif pages.4 %}
-        <div id="content">
+        <div class="line"></div>
+        <h2>Members</h2>
+        <table class="table table-striped table-dark">
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Email</th>
+              <th scope="col">Amount Due</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for groupmember in groupmembers%}
+            <tr>
+              <th scope="row">{{ groupmember.0 }}</th>
+              <td>{{ groupmember.1 }}</td>
+              <td>$0</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
 
-            <nav class="navbar navbar-expand-lg navbar-light bg-light">
-                <div class="container-fluid">
+        <div class="line"></div>
 
-                    <button type="button" id="sidebarCollapse" class="btn btn-info">
-                        <i class="fas fa-align-left"></i>
-                        <span>Toggle Sidebar</span>
-                    </button>
-                </div>
-            </nav>
+        <h2>Ledger</h2>
 
-            <h2>Code: {{ pages.4 }}</h2>
-            <div class="line"></div>
-            <h2>Members</h2>
-            <table class="table table-striped table-dark">
-                <thead>
-                    <tr>
-                      <th scope="col">Name</th>
-                      <th scope="col">Email</th>
-                      <th scope="col">Amount Due</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for groupmember in groupmembers%}
-                    <tr>
-                        <th scope="row">{{ groupmember.0 }}</th>
-                        <td>{{ groupmember.1 }}</td>
-                        <td>$0</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-                  
-            </table>
-
-            <div class="line"></div>
-        </div>
-        {% endif %}
-
-
-
-
+        <div class="line"></div>
+      </div>
+      {% endif %}
     </div>
 
     <!-- jQuery CDN - Slim version (=without AJAX) -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script
+      src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+      integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+      crossorigin="anonymous"
+    ></script>
     <!-- Popper.JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"
+      integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ"
+      crossorigin="anonymous"
+    ></script>
     <!-- Bootstrap JS -->
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"
+      integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm"
+      crossorigin="anonymous"
+    ></script>
 
     <script type="text/javascript">
-        $(document).ready(function () {
-            $('#sidebarCollapse').on('click', function () {
-                $('#sidebar').toggleClass('active');
-            });
+      $(document).ready(function () {
+        $("#sidebarCollapse").on("click", function () {
+          $("#sidebar").toggleClass("active");
         });
+      });
     </script>
-</body>
-
+  </body>
 </html>

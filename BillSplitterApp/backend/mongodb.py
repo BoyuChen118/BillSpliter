@@ -38,7 +38,7 @@ class Authenticator:
             elif len(nickname) == 0:
                 return (False, 'Name can\'t be empty')
             self.db.insert_data(
-                'users', {'_id': email, 'password': p, 'nickname': nickname, 'groups': []})
+                'users', {'_id': email, 'password': p, 'nickname': nickname, 'groups': [], 'tempexpenses': {}})  # temp expenses can potentially become official expense once user submit
             self.email = email
             return (True, None)
         except Exception:
@@ -50,7 +50,6 @@ class Authenticator:
         if not doc or len(doc) == 0:
             return False
         self.email = email
-        print(self.email)
         return True
 
     # get groups the user belongs to
@@ -110,6 +109,39 @@ class Authenticator:
             self.db.storage.get_collection(
                 'groups').find_one_and_update({'_id': groupcode}, {'$push': {"members": self.email}})
 
+    # retrieve temporary expenses for the user for group with groupcode
+    def get_tempexpenses(self, groupcode: str):
+        expensesmap = self.db.storage.get_collection('users').find_one(
+            {'_id': self.email})['tempexpenses']
+        if groupcode in expensesmap:
+            return expensesmap[groupcode]
+        else:
+            return {}
+
+    # handle when user submit an item
+    def update_tempexpenses(self, groupcode: str, item: dict):
+        if len(self.get_tempexpenses(groupcode)) == 0:  # temp expenses has been submitted before
+            self.db.storage.get_collection(
+                'users').find_one_and_update({'_id': self.email}, {'$set': {"tempexpenses": {
+                    groupcode: [],
+                }}})
+        try:
+            float(item['itemprice'])
+            self.db.storage.get_collection(
+                'users').find_one_and_update({'_id': self.email}, {'$push': {f"tempexpenses.{groupcode}": item}})
+        except Exception:
+            return 'Item price must be a positive number'
+
+    # handle user deleting item
+    def delete_tempexpense(self, groupcode: str, itemindex: str):
+        #         db.lists.update({}, {$unset : {"interests.3" : 1 }})
+        # db.lists.update({}, {$pull : {"interests" : null}})
+        itemindex = int(itemindex)
+        self.db.storage.get_collection('users').find_one_and_update(
+            {'_id': self.email}, {'$unset': {f"tempexpenses.{groupcode}.{itemindex}": 1}})
+        self.db.storage.get_collection('users').find_one_and_update(
+            {'_id': self.email}, {'$pull': {f"tempexpenses.{groupcode}": None}})
+
 
 class PageGenerator:
     def __init__(self, authenticator: Authenticator):
@@ -129,3 +161,14 @@ class PageGenerator:
             pages[4] = self.auth.get_group_code(groupindex)
 
         return pages
+
+
+class Util:
+    # extract the array index to delete from form data
+    def extractDelete(self, data: dict):
+        matchregex = re.compile(
+            r'deleteitem[0-9]+')
+        for k, v in data.items():
+            if re.fullmatch(matchregex, k):
+                return int(k[10:])
+        return -1
