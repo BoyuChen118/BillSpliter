@@ -5,27 +5,23 @@ import string
 
 
 class item:
-    def __init__(self, name, price, quantity):
+    def __init__(self, name, price, quantity, splitmode):
         self.name = name
         self.price = price
         self.quantity = quantity
+        self.splitmode = splitmode
 
     # serialize the object to a json
     def toJson(self):
-        return {'itemname': self.name, 'itemprice': self.price, 'itemquantity': int(self.quantity)}
+        return {'itemname': self.name, 'itemprice': self.price, 'itemquantity': int(self.quantity), 'itemsplitmode': int(self.splitmode)}
     
-class expense:
+class PendingExpense:
     def __init__(self, expensename):
         self.expensename = expensename
         self.items = []  # holdes a list of items
     def toJson(self):
         jsonobj = {'expensename': self.expensename, 'items': [i.toJson() for i in self.items]}
         return jsonobj
-
-# class tempexpense(expense):
-#     def __init__(self, expensename, groupcode):
-#         expense.__init__(expensename)
-#         self.groupcode = groupcode
 
 
 # example usage   

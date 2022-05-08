@@ -93,7 +93,7 @@
             <ul class="list-unstyled" id="pageSubmenu">
               {% for group in groups %}
               <li>
-                <a href="/landing/groups/{{ forloop.counter0 }}">{{ group }}</a>
+                <a href="/landing/groups/{{ forloop.counter0 }}"><i class="fa fa-users"></i> {{ group }}</a>
               </li>
               {% endfor %}
             </ul>
@@ -265,11 +265,27 @@
                 name="expensename"
                 placeholder="ExpenseName"
               />
-              <select class="form-select form-select-sm">
-                <option value="1" selected>Evenly split with everyone</option>
-                <option value="2">
-                  Let each person select what they bought
+              <select name="defaultsplitoption" class="form-select form-select-sm">
+                {% if defaultsplitoption == "-1" %}
+                <option value= "1" selected>Please choose a default split option</option>
+                <option value="0">Evenly split with everyone</option>
+                <option value="1">
+                    Uneven Split(send survey)
                 </option>
+                {% endif %}
+                {% if defaultsplitoption == "0" %}
+                <option value= "1">Please choose a default split option</option>
+                <option value="0" selected>Evenly split with everyone</option>
+                <option value="1">
+                    Uneven Split(send survey)
+                </option>
+                {% else %}
+                <option value= "1">Please choose a default split option</option>
+                <option value="0">Evenly split with everyone</option>
+                <option value="1" selected>
+                    Uneven Split(send survey)
+                </option>
+                {% endif %}
               </select>
             </div>
         <!-- group page: temp expenses submitted  -->
@@ -298,6 +314,19 @@
                 {% endif %}
                 {% endfor %} 
                 {% endwith %}
+              </select>
+              <select name="itemsplitmode{{forloop.counter0}}" class="form-select form-select-sm">
+                {% if tempitem.itemsplitmode == 0%}
+                <option value="0" selected>Evenly split with everyone</option>
+                <option value="1">
+                  Uneven Split(send survey)
+                </option>
+                {% else %}
+                <option value="0">Evenly split with everyone</option>
+                <option value="1" selected>
+                  Uneven Split(send survey)
+                </option>
+                {% endif %}
               </select>
 
               
@@ -331,13 +360,25 @@
               {% endfor %} 
               {% endwith %}
             </select>
-
+            <select name="itemsplitmode" class="form-select form-select-sm">
+                 {% if defaultsplitoption == "0" %}
+                <option value="0" selected>Evenly split with everyone</option>
+                <option value="1">
+                    Uneven Split(send survey)
+                </option>
+                {% else %}
+                <option value="0">Evenly split with everyone</option>
+                <option value="1" selected>
+                    Uneven Split(send survey)
+                </option>
+                {% endif %}
+            </select>
             <button name="submititem" value="." type="submit" class="btn btn-dark">&#x2714;</button>
         </div>
 
 
             <!-- group page: temp expenses submit and reset buttons  -->
-            <button name="submitexpense" value="." type="submit" class="btn btn-dark">Submit</button>
+            <button name="submitexpense" value="submitexpense" type="submit" class="btn btn-dark" onclick="return confirm('You won\'t be able to change your expense report anymore after this step.  Click ok to continue')">Submit</button>
             <button type="reset" class="btn btn-dark">Cancel</button>
           </form>
         </div>

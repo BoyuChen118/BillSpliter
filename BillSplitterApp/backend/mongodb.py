@@ -155,6 +155,10 @@ class Authenticator:
         except Exception:
             return 0
         return len(expenses) if expenses else 0
+    
+    # promote a temp expense to a pending expense.  Submit it to group and simultaneously send survey to all involving members
+    def pend_expense(self, groupcode: str):
+        pass
 
 
 class PageGenerator:

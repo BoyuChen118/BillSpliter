@@ -57,6 +57,7 @@ def landing(request, **kwargs):
         errormsg = auth.join_group(data.get('groupcode'))
     groups = auth.get_groups() # all group names the user belongs to
     name = auth.get_name()
+    defaultsplitoption = -1
     
     pages = backendservice.PageGenerator(auth).generatepages(page, groupindex)  # represent state of all page, false=page is not on display, true=page is on display.  [home, about, profile, contact, groupcode]
     groupinfo = [] # array of [membername, memberemail]
@@ -66,21 +67,24 @@ def landing(request, **kwargs):
         groupinfo = auth.get_group_members(pages[4])
         if request.method == 'POST':
             postdata = request.POST
+            defaultsplitoption = postdata['defaultsplitoption'] # -1 is haven't been set, 0 is even split 1 is uneven split
             deleteIndex = backendservice.Util().extractDelete(dict(postdata)) # delete tempexpenses[deleteIndex] if deleteindex isn't -1
             # handle user delete item
             if deleteIndex != -1:
                 auth.delete_tempexpense(pages[4], deleteIndex)
-            elif request.POST.get('submititem'): # user submitted an temporary expense request
+            elif request.POST.get('submititem') or request.POST.get('submitexpense'):
                 # update temporary expense
+                print('submititem')
                 index = 0
                 while index < auth.get_tempexpense_length(pages[4]):
-                    newitem = datastructs.item(postdata.get(f'itemname{index}'), postdata.get(f'itemprice{index}'), postdata.get(f'itemquantity{index}')).toJson()
+                    newitem = datastructs.item(postdata.get(f'itemname{index}'), postdata.get(f'itemprice{index}'), postdata.get(f'itemquantity{index}'), postdata.get(f'itemsplitmode{index}')).toJson()
                     auth.update_tempexpenses(pages[4], newitem, index)
                     index += 1
-                # submit item AFTER update
-                errormsg = auth.submit_tempexpenses(pages[4], datastructs.item(postdata.get('itemname'), postdata.get('itemprice'), postdata.get('itemquantity')).toJson())
-                
-            elif request.POST.get('submitexpense'): # user pressed the submit button (submit temp expense as permanent expense)
-                pass
+                if request.POST.get('submititem'): # user submitted an temporary expense request
+                    # submit item AFTER update
+                    errormsg = auth.submit_tempexpenses(pages[4], datastructs.item(postdata.get('itemname'), postdata.get('itemprice'), postdata.get('itemquantity'), postdata.get('itemsplitmode')).toJson())
+                elif request.POST.get('submitexpense'): # user pressed the submit button (submit temp expense as permanent expense)
+                    pass
         tempexpenses = auth.get_tempexpenses(pages[4])
-    return render(request, 'landing.html', {'groups': groups, 'name': name, 'pages': pages, 'groupmembers': groupinfo, 'tempexpenses': tempexpenses, 'tempitemcount': len(tempexpenses), 'errmsg': errormsg})
+    print(f"err is {errormsg}, {request.method == 'POST'}")
+    return render(request, 'landing.html', {'groups': groups, 'name': name, 'pages': pages, 'groupmembers': groupinfo, 'tempexpenses': tempexpenses, 'tempitemcount': len(tempexpenses), 'errmsg': errormsg, 'defaultsplitoption': defaultsplitoption})
