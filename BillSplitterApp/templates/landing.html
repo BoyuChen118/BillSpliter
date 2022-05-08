@@ -278,16 +278,16 @@
               <input
                 class="iteminput"
                 type="text"
-                name="itemname"
+                name="itemname{{forloop.counter0}}"
                 value="{{ tempitem.itemname }}"
               />
               <input
                 class="iteminput"
                 type="text"
-                name="itemprice"
+                name="itemprice{{forloop.counter0}}"
                 value="${{ tempitem.itemprice }}"
               />
-              <select name= "itemquantity" class="form-select form-select-sm">
+              <select name= "itemquantity{{forloop.counter0}}" class="form-select form-select-sm">
                 <option value="0">Select item quantity</option>
                 {% with ''|center:100 as range %} 
                 {% for _ in range %}

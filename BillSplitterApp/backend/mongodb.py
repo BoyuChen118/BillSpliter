@@ -119,7 +119,7 @@ class Authenticator:
             return {}
 
     # handle when user submit an item
-    def update_tempexpenses(self, groupcode: str, item: dict):
+    def submit_tempexpenses(self, groupcode: str, item: dict):
         if len(self.get_tempexpenses(groupcode)) == 0:  # temp expenses has been submitted before
             self.db.storage.get_collection(
                 'users').find_one_and_update({'_id': self.email}, {'$set': {"tempexpenses": {
@@ -132,15 +132,29 @@ class Authenticator:
         except Exception:
             return 'Item price must be a positive number'
 
+    # handle user making change to temp expense
+    def update_tempexpenses(self, groupcode: str, newitem: dict, itemindex: str):
+        itemindex = int(itemindex)
+        newitem['itemprice'] = newitem['itemprice'].strip('$')
+        self.db.storage.get_collection(
+            'users').find_one_and_update({'_id': self.email}, {'$set': {f"tempexpenses.{groupcode}.{itemindex}":
+                                                                        newitem
+                                                                        }})
+
     # handle user deleting item
     def delete_tempexpense(self, groupcode: str, itemindex: str):
-        #         db.lists.update({}, {$unset : {"interests.3" : 1 }})
-        # db.lists.update({}, {$pull : {"interests" : null}})
         itemindex = int(itemindex)
         self.db.storage.get_collection('users').find_one_and_update(
             {'_id': self.email}, {'$unset': {f"tempexpenses.{groupcode}.{itemindex}": 1}})
         self.db.storage.get_collection('users').find_one_and_update(
             {'_id': self.email}, {'$pull': {f"tempexpenses.{groupcode}": None}})
+
+    def get_tempexpense_length(self, groupcode: str):
+        try:
+            expenses = self.db.storage.get_collection('users').find_one({'_id': self.email})['tempexpenses'][groupcode]
+        except Exception:
+            return 0
+        return len(expenses) if expenses else 0
 
 
 class PageGenerator:
