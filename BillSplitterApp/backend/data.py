@@ -4,7 +4,7 @@ import random
 import string
 
 
-class item:
+class item:  # use for temporary expense
     def __init__(self, name, price, quantity, splitmode):
         self.name = name
         self.price = price
@@ -16,11 +16,16 @@ class item:
         return {'itemname': self.name, 'itemprice': self.price, 'itemquantity': int(self.quantity), 'itemsplitmode': int(self.splitmode)}
     
 class PendingExpense:
-    def __init__(self, expensename):
+    def convert_items(self):
+        for item in self.items:
+            totalprice = float(item['itemprice']) * int(item['itemquantity'])
+            item = {'name': item['itemname'], 'totalprice': totalprice, 'splitmode': item['splitmode']}
+    def __init__(self, expensename, items):
         self.expensename = expensename
-        self.items = []  # holdes a list of items
+        self.items = items  # holdes a list of items
+        self.convert_items()
     def toJson(self):
-        jsonobj = {'expensename': self.expensename, 'items': [i.toJson() for i in self.items]}
+        jsonobj = {'expensename': self.expensename, 'items': self.items}
         return jsonobj
 
 

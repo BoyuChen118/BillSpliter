@@ -67,7 +67,7 @@ def landing(request, **kwargs):
         groupinfo = auth.get_group_members(pages[4])
         if request.method == 'POST':
             postdata = request.POST
-            defaultsplitoption = postdata['defaultsplitoption'] # -1 is haven't been set, 0 is even split 1 is uneven split
+            defaultsplitoption = postdata['itemsplitmode'] # -1 is haven't been set, 0 is even split 1 is uneven split
             deleteIndex = backendservice.Util().extractDelete(dict(postdata)) # delete tempexpenses[deleteIndex] if deleteindex isn't -1
             # handle user delete item
             if deleteIndex != -1:
@@ -83,7 +83,7 @@ def landing(request, **kwargs):
                 if request.POST.get('submititem'): # user submitted an temporary expense request
                     # submit item AFTER update
                     errormsg = auth.submit_tempexpenses(pages[4], datastructs.item(postdata.get('itemname'), postdata.get('itemprice'), postdata.get('itemquantity'), postdata.get('itemsplitmode')).toJson())
-                elif request.POST.get('submitexpense'): # user pressed the submit button (submit temp expense as permanent expense)
+                elif request.POST.get('submitexpense'): # user pressed the submit button (submit temp expense as pending expense)
                     pass
         tempexpenses = auth.get_tempexpenses(pages[4])
     print(f"err is {errormsg}, {request.method == 'POST'}")

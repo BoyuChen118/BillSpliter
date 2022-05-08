@@ -36,6 +36,16 @@
       integrity="sha384-Bfad6CLCknfcloXFOyFnlgtENryhrpZCe29RTifKEixXQZ38WheV+i/6YWSzkz3V"
       crossorigin="anonymous"
     />
+
+    <script type="text/javascript">
+
+        function changeFunc() {
+         var selectBox = document.getElementById("splitselect");
+         var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+         document.forms["tempexp"].submit(); 
+        }
+     
+       </script>
   </head>
 
   <body>
@@ -257,7 +267,7 @@
         <div class="line"></div>
         <h2>Add Expense</h2>
         <div class="expensefield">
-          <form action="" method="post"> {% csrf_token %}
+          <form name="tempexp" action="" method="post"> {% csrf_token %}
             <div class="expensesfields">
               <input
                 class="input100"
@@ -265,7 +275,7 @@
                 name="expensename"
                 placeholder="ExpenseName"
               />
-              <select name="defaultsplitoption" class="form-select form-select-sm">
+              {% comment %} <select  id="splitselect" name="defaultsplitoption" class="form-select form-select-sm" onchange="changeFunc();">
                 {% if defaultsplitoption == "-1" %}
                 <option value= "1" selected>Please choose a default split option</option>
                 <option value="0">Evenly split with everyone</option>
@@ -286,7 +296,7 @@
                     Uneven Split(send survey)
                 </option>
                 {% endif %}
-              </select>
+              </select> {% endcomment %}
             </div>
         <!-- group page: temp expenses submitted  -->
         {% for tempitem in tempexpenses %}
