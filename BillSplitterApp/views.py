@@ -62,6 +62,7 @@ def landing(request, **kwargs):
     pages = backendservice.PageGenerator(auth).generatepages(page, groupindex)  # represent state of all page, false=page is not on display, true=page is on display.  [home, about, profile, contact, groupcode]
     groupinfo = [] # array of [membername, memberemail]
     tempexpenses = {} # number of items in temporary expense
+    pendexpenses = [] # all pending expenses in the group
     # handle group page request pages[4] is current group code
     if pages[4]:
         groupinfo = auth.get_group_members(pages[4])
@@ -74,7 +75,6 @@ def landing(request, **kwargs):
                 auth.delete_tempexpense(pages[4], deleteIndex)
             elif request.POST.get('submititem') or request.POST.get('submitexpense'):
                 # update temporary expense
-                print('submititem')
                 index = 0
                 while index < auth.get_tempexpense_length(pages[4]):
                     newitem = datastructs.item(postdata.get(f'itemname{index}'), postdata.get(f'itemprice{index}'), postdata.get(f'itemquantity{index}'), postdata.get(f'itemsplitmode{index}')).toJson()
@@ -84,7 +84,7 @@ def landing(request, **kwargs):
                     # submit item AFTER update
                     errormsg = auth.submit_tempexpenses(pages[4], datastructs.item(postdata.get('itemname'), postdata.get('itemprice'), postdata.get('itemquantity'), postdata.get('itemsplitmode')).toJson())
                 elif request.POST.get('submitexpense'): # user pressed the submit button (submit temp expense as pending expense)
-                    pass
+                    errormsg = auth.pend_expense(pages[4], postdata['expensename'])
+        pendexpenses = backendservice.Util().switch_email_to_name(auth.get_pending_expenses(pages[4]), groupinfo)
         tempexpenses = auth.get_tempexpenses(pages[4])
-    print(f"err is {errormsg}, {request.method == 'POST'}")
-    return render(request, 'landing.html', {'groups': groups, 'name': name, 'pages': pages, 'groupmembers': groupinfo, 'tempexpenses': tempexpenses, 'tempitemcount': len(tempexpenses), 'errmsg': errormsg, 'defaultsplitoption': defaultsplitoption})
+    return render(request, 'landing.html', {'groups': groups, 'name': name, 'pages': pages, 'groupmembers': groupinfo, 'tempexpenses': tempexpenses, 'pendingexpenses': pendexpenses, 'tempitemcount': len(tempexpenses), 'errmsg': errormsg, 'defaultsplitoption': defaultsplitoption})

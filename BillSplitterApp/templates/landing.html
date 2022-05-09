@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
-    <title>BillSplitter</title>
+    <title>SmartSplitter</title>
 
     <!-- Bootstrap CSS CDN -->
     <link
@@ -53,8 +53,8 @@
       <!-- Sidebar  -->
       <nav id="sidebar">
         <div class="sidebar-header">
-          <h3>BillSplitter</h3>
-          <strong>BS</strong>
+          <h3>SmartSplitter</h3>
+          <strong>Sm</strong>
         </div>
 
         <ul class="list-unstyled components">
@@ -262,7 +262,9 @@
             </button>
           </div>
         </nav>
-
+        {% if errmsg %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">{{errmsg}}</div>
+        {% endif %}
         <h2>Code: {{ pages.4 }}</h2>
         <div class="line"></div>
         <h2>Add Expense</h2>
@@ -393,13 +395,33 @@
           </form>
         </div>
         <div class="line"></div>
+        <h2>Pending Group Expenses</h2>
+        <table class="table table-striped table-dark">
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">ExpenseName</th>
+              <th scope="col">ActionRequired</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for pexp in pendingexpenses%}
+            <tr>
+              <th scope="row">{{ pexp.name }}</th>
+              <td>{{ pexp.expensename }}</td>
+              <td>{{ pexp.actionrequired}}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div class="line"></div>
         <h2>Members</h2>
         <table class="table table-striped table-dark">
           <thead>
             <tr>
               <th scope="col">Name</th>
               <th scope="col">Email</th>
-              <th scope="col">Amount Due</th>
+              <th scope="col">Amount Owe</th>
             </tr>
           </thead>
           <tbody>
@@ -418,6 +440,7 @@
         <h2>Ledger</h2>
 
         <div class="line"></div>
+
       </div>
       {% endif %}
     </div>

@@ -5,6 +5,7 @@ import pymongo
 import re
 import random
 import string
+import BillSplitterApp.backend.data as datastructs
 
 # all backend stuffs handled here
 
@@ -122,9 +123,9 @@ class Authenticator:
     def submit_tempexpenses(self, groupcode: str, item: dict):
         if len(self.get_tempexpenses(groupcode)) == 0:  # temp expenses has been submitted before
             self.db.storage.get_collection(
-                'users').find_one_and_update({'_id': self.email}, {'$set': {"tempexpenses": {
-                    groupcode: [],
-                }}})
+                'users').find_one_and_update({'_id': self.email}, {'$set': {f"tempexpenses.{groupcode}":
+                                                                            []
+                                                                            }})
         try:
             float(item['itemprice'])
             self.db.storage.get_collection(
@@ -151,14 +152,34 @@ class Authenticator:
 
     def get_tempexpense_length(self, groupcode: str):
         try:
-            expenses = self.db.storage.get_collection('users').find_one({'_id': self.email})['tempexpenses'][groupcode]
+            expenses = self.db.storage.get_collection('users').find_one(
+                {'_id': self.email})['tempexpenses'][groupcode]
         except Exception:
             return 0
         return len(expenses) if expenses else 0
-    
+
     # promote a temp expense to a pending expense.  Submit it to group and simultaneously send survey to all involving members
-    def pend_expense(self, groupcode: str):
-        pass
+    def pend_expense(self, groupcode: str, expensename: str):
+        expenses = self.get_tempexpenses(groupcode)
+        pexpenses = self.get_pending_expenses(groupcode)
+        for pexpense in pexpenses:
+            if pexpense['expensename'] == expensename and pexpense['email'] == self.email:
+                return 'An expense of the same name already exists'
+        if len(expenses) == 0:
+            return 'Expenses form can\'t be empty'
+        elif len(expensename) == 0:
+            return 'Expense name can\'t empty'
+        self.db.storage.get_collection(
+            'groups').find_one_and_update({'_id': groupcode}, {'$push': {f"pendingexpenses": datastructs.PendingExpense(
+                expensename, self.email, expenses).toJson()}})
+
+    def get_pending_expenses(self, groupcode: str):
+        try:
+            ret = self.db.storage.get_collection(
+                'groups').find_one({'_id': groupcode})['pendingexpenses']
+            return ret
+        except Exception:
+            return []
 
 
 class PageGenerator:
@@ -190,3 +211,27 @@ class Util:
             if re.fullmatch(matchregex, k):
                 return int(k[10:])
         return -1
+
+    # add name to each pendingexpenses for display
+    def switch_email_to_name(self, pendingexpenses, members):
+        members = {v[1]: v[0] for v in members}  # members will be {email:name}
+        for p in pendingexpenses:
+            p['name'] = members[p['email']]
+        return pendingexpenses
+
+    # encode email to replace '.' with '@' in order to avoid problem with mongodb
+
+    def encodeEmail(self, email: str):
+        return email.replace('.', '@')
+
+    # decode email replace all '@' except second to last one with '.'
+    def decodeEmail(self, email: str):
+        allindexes = []
+        email = list(email)
+        for index in range(len(email)):
+            if email[index] == '@':
+                allindexes.append(index)
+        allindexes.pop(-2)
+        for index in allindexes:
+            email[index] = '.'
+        return "".join(email)

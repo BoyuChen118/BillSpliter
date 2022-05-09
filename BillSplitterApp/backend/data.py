@@ -1,4 +1,3 @@
-
 import re
 import random
 import string
@@ -19,13 +18,14 @@ class PendingExpense:
     def convert_items(self):
         for item in self.items:
             totalprice = float(item['itemprice']) * int(item['itemquantity'])
-            item = {'name': item['itemname'], 'totalprice': totalprice, 'splitmode': item['splitmode']}
-    def __init__(self, expensename, items):
+            item = {'name': item['itemname'], 'totalprice': totalprice, 'splitmode': item['itemsplitmode']}
+    def __init__(self, expensename, email, items):
         self.expensename = expensename
         self.items = items  # holdes a list of items
+        self.email = email
         self.convert_items()
     def toJson(self):
-        jsonobj = {'expensename': self.expensename, 'items': self.items}
+        jsonobj = {'expensename': self.expensename, 'email': self.email, 'actionrequired': "WaitingForSurveys",  'items': self.items}
         return jsonobj
 
 
