@@ -213,10 +213,13 @@ class Util:
         return -1
 
     # add name to each pendingexpenses for display
-    def switch_email_to_name(self, pendingexpenses, members):
-        members = {v[1]: v[0] for v in members}  # members will be {email:name}
+    def process_pendingexpenses(self, pendingexpenses, members, currentemail):
+        members = {m[1]: m[0] for m in members}  # members will be {email:name}
         for p in pendingexpenses:
             p['name'] = members[p['email']]
+            if 'Wait' in p['actionrequired'] and p['email'] != currentemail:
+                p['actionrequired'] = 'Pending Survey (click me)'
+                p['color'] = 'yellow'
         return pendingexpenses
 
     # encode email to replace '.' with '@' in order to avoid problem with mongodb
@@ -235,3 +238,14 @@ class Util:
         for index in allindexes:
             email[index] = '.'
         return "".join(email)
+    
+    # retrieve items from pending expense with name
+    def get_items(self, expenses, name):  
+        finalitems = []
+        for expense in expenses:
+            if expense['expensename'] == name:
+                for item in expense['items']:
+                    itemname = item['itemname'] if item['itemquantity'] == 1 else f"{item['itemname']} *{item['itemquantity']}  "
+                    itemprice = float(item['itemprice'])
+                    finalitems.append({'itemname': itemname, 'itemprice':  f' (${itemprice} ea )'})
+        return finalitems

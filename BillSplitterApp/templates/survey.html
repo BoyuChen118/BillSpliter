@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head> 
+     <!-- Bootstrap CSS CDN -->
+     <link
+     rel="stylesheet"
+     href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css"
+     integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4"
+     crossorigin="anonymous"
+   />
+   <!-- Our Custom CSS -->
+   <link rel="stylesheet" href="/static/css/style4.css" />
+
+   <!-- Font Awesome JS -->
+   <script
+     defer
+     src="https://use.fontawesome.com/releases/v5.0.13/js/solid.js"
+     integrity="sha384-tzzSw1/Vo+0N5UhStP3bvwWPq+uvzCMfrN1fEFe+xBmv1C/AtVX5K0uZtmcHitFZ"
+     crossorigin="anonymous"
+   ></script>
+   <script
+     defer
+     src="https://use.fontawesome.com/releases/v5.0.13/js/fontawesome.js"
+     integrity="sha384-6OIrr52G08NpOFSZdxxz1xdNSndlD4vdcf/q2myIUVO0VsqaGHJsB0RaBE01VTOY"
+     crossorigin="anonymous"
+   ></script>
+   <link
+     rel="stylesheet"
+     href="https://use.fontawesome.com/releases/v6.1.1/css/all.css"
+     integrity="sha384-Bfad6CLCknfcloXFOyFnlgtENryhrpZCe29RTifKEixXQZ38WheV+i/6YWSzkz3V"
+     crossorigin="anonymous"
+   />
+   <script type="text/javascript">
+
+    function handleClick(cb, index) {
+        if(cb.checked){
+            document.getElementById(`quantityselect${index}`).style.visibility = "visible";
+        }
+        else{
+            document.getElementById(`quantityselect${index}`).style.visibility = "hidden";
+        }
+        
+    }
+ 
+   </script>
+  </head>
+  <body style="background-color: #343a40">
+    <div class="row col-5">
+        <h4 class="fw-bold text-center mt-3"></h4>
+        <form class="px-4" action="">
+          <h1 class="fw-bold">Survey for {{ expensename }}</h1>
+          <h3 class="fw-bold">Choose all items you bought or shared with others</h3>
+          {% for item in items%}
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault{{forloop.counter0}}" onclick='handleClick(this,{{forloop.counter0}});' />
+            <label class="form-check-label" for="flexCheckDefault{{forloop.counter0}}">
+              {{ item.itemname }}{{ item.itemprice }}
+            </label>
+            <select id="quantityselect{{forloop.counter0}}" class="form-select form-select-sm" style="visibility:hidden;">
+                <option value="0">Select item quantity</option>
+                {% with ''|center:100 as range %} 
+                {% for _ in range %}
+                {% if forloop.counter == 1%}
+                <option value="{{ forloop.counter }}" selected>{{ forloop.counter }}</option>
+                {% else %}
+                <option value="{{ forloop.counter }}">{{ forloop.counter }}</option>
+                {% endif %}
+                {% endfor %} 
+                {% endwith %}
+            </select>
+          </div>
+          {% endfor %}
+      
+          <!-- Checked checkbox -->
+
+          <button type="button" class="btn">Submit</button>
+        </form>
+        
+      </div>
+      
+
+  </body>
+</html>

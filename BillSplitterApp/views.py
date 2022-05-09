@@ -8,6 +8,7 @@ import datetime
 # initialize auth
 auth = backendservice.Authenticator()
 
+
 def current_datetime(request):
     now = datetime.datetime.now()
     html = "<html><body>It is now %s.</body></html>" % now
@@ -43,7 +44,7 @@ def signup(request):
             return response
     return render(request, 'signup.html')
 
-# view to display when user clicks on one specific group (e.g. group code, members etc.)
+
 def landing(request, **kwargs):
     page = kwargs.get('page', None)
     # user is accessing groups[groupindex] at landing page
@@ -55,21 +56,27 @@ def landing(request, **kwargs):
         auth.create_group(data.get('groupname'))
     elif 'groupcode' in data:   # join group operation
         errormsg = auth.join_group(data.get('groupcode'))
-    groups = auth.get_groups() # all group names the user belongs to
+    groups = auth.get_groups()  # all group names the user belongs to
     name = auth.get_name()
     defaultsplitoption = -1
-    
-    pages = backendservice.PageGenerator(auth).generatepages(page, groupindex)  # represent state of all page, false=page is not on display, true=page is on display.  [home, about, profile, contact, groupcode]
-    groupinfo = [] # array of [membername, memberemail]
-    tempexpenses = {} # number of items in temporary expense
-    pendexpenses = [] # all pending expenses in the group
+
+    # represent state of all page, false=page is not on display, true=page is on display.  [home, about, profile, contact, groupcode]
+    pages = backendservice.PageGenerator(auth).generatepages(page, groupindex)
+    groupinfo = []  # array of [membername, memberemail]
+    tempexpenses = {}  # number of items in temporary expense
+    pendexpenses = []  # all pending expenses in the group
+    expensename = ''
     # handle group page request pages[4] is current group code
+    # view to display when user clicks on one specific group (e.g. group code, members etc.)
     if pages[4]:
         groupinfo = auth.get_group_members(pages[4])
         if request.method == 'POST':
             postdata = request.POST
-            defaultsplitoption = postdata['itemsplitmode'] # -1 is haven't been set, 0 is even split 1 is uneven split
-            deleteIndex = backendservice.Util().extractDelete(dict(postdata)) # delete tempexpenses[deleteIndex] if deleteindex isn't -1
+            # -1 is haven't been set, 0 is even split 1 is uneven split
+            defaultsplitoption = postdata['itemsplitmode']
+            expensename = postdata['expensename']
+            # delete tempexpenses[deleteIndex] if deleteindex isn't -1
+            deleteIndex = backendservice.Util().extractDelete(dict(postdata))
             # handle user delete item
             if deleteIndex != -1:
                 auth.delete_tempexpense(pages[4], deleteIndex)
@@ -77,14 +84,26 @@ def landing(request, **kwargs):
                 # update temporary expense
                 index = 0
                 while index < auth.get_tempexpense_length(pages[4]):
-                    newitem = datastructs.item(postdata.get(f'itemname{index}'), postdata.get(f'itemprice{index}'), postdata.get(f'itemquantity{index}'), postdata.get(f'itemsplitmode{index}')).toJson()
+                    newitem = datastructs.item(postdata.get(f'itemname{index}'), postdata.get(
+                        f'itemprice{index}'), postdata.get(f'itemquantity{index}'), postdata.get(f'itemsplitmode{index}')).toJson()
                     auth.update_tempexpenses(pages[4], newitem, index)
                     index += 1
-                if request.POST.get('submititem'): # user submitted an temporary expense request
+                # user submitted an temporary expense request
+                if request.POST.get('submititem'):
                     # submit item AFTER update
-                    errormsg = auth.submit_tempexpenses(pages[4], datastructs.item(postdata.get('itemname'), postdata.get('itemprice'), postdata.get('itemquantity'), postdata.get('itemsplitmode')).toJson())
-                elif request.POST.get('submitexpense'): # user pressed the submit button (submit temp expense as pending expense)
-                    errormsg = auth.pend_expense(pages[4], postdata['expensename'])
-        pendexpenses = backendservice.Util().switch_email_to_name(auth.get_pending_expenses(pages[4]), groupinfo)
+                    errormsg = auth.submit_tempexpenses(pages[4], datastructs.item(postdata.get('itemname'), postdata.get(
+                        'itemprice'), postdata.get('itemquantity'), postdata.get('itemsplitmode')).toJson())
+                # user pressed the submit button (submit temp expense as pending expense)
+                elif request.POST.get('submitexpense'):
+                    errormsg = auth.pend_expense(pages[4], expensename)
+        pendexpenses = backendservice.Util().process_pendingexpenses(
+            auth.get_pending_expenses(pages[4]), groupinfo, auth.email)
         tempexpenses = auth.get_tempexpenses(pages[4])
-    return render(request, 'landing.html', {'groups': groups, 'name': name, 'pages': pages, 'groupmembers': groupinfo, 'tempexpenses': tempexpenses, 'pendingexpenses': pendexpenses, 'tempitemcount': len(tempexpenses), 'errmsg': errormsg, 'defaultsplitoption': defaultsplitoption})
+    return render(request, 'landing.html', {'groups': groups, 'name': name, 'pages': pages, 'groupmembers': groupinfo, 'tempexpenses': tempexpenses, 'pendingexpenses': pendexpenses, 'tempitemcount': len(tempexpenses), 'errmsg': errormsg, 'defaultsplitoption': defaultsplitoption, 'expname': expensename})
+
+# survey send out to everyone to collect info about who ordered what
+def survey(request, **kwargs):
+    enameandcode = kwargs.get('expensename').split(' ')
+    expensename, groupcode = enameandcode[0], enameandcode[1]
+    finalitems = backendservice.Util().get_items(auth.get_pending_expenses(groupcode), expensename)
+    return render(request, 'survey.html', {'expensename': expensename, 'items': finalitems})

@@ -271,12 +271,21 @@
         <div class="expensefield">
           <form name="tempexp" action="" method="post"> {% csrf_token %}
             <div class="expensesfields">
+            {% if expname%}
+              <input
+                class="input100"
+                type="text"
+                name="expensename"
+                value={{expname}}
+              />
+              {% else %}
               <input
                 class="input100"
                 type="text"
                 name="expensename"
                 placeholder="ExpenseName"
               />
+              {% endif %}
               {% comment %} <select  id="splitselect" name="defaultsplitoption" class="form-select form-select-sm" onchange="changeFunc();">
                 {% if defaultsplitoption == "-1" %}
                 <option value= "1" selected>Please choose a default split option</option>
@@ -401,7 +410,7 @@
             <tr>
               <th scope="col">Name</th>
               <th scope="col">ExpenseName</th>
-              <th scope="col">ActionRequired</th>
+              <th scope="col">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -409,7 +418,11 @@
             <tr>
               <th scope="row">{{ pexp.name }}</th>
               <td>{{ pexp.expensename }}</td>
-              <td>{{ pexp.actionrequired}}</td>
+              {% if pexp.actionrequired == "Pending Survey (click me)" %}
+              <td><a href='/survey/{{ pexp.expensename }} {{pages.4}}' style="color:yellow;">{{pexp.actionrequired}}</a></td>
+              {% elif pexp.actionrequired == "WaitingForSurveys" %}
+              <td><a href='#'>{{pexp.actionrequired}}</a></td>
+              {% endif %}
             </tr>
             {% endfor %}
           </tbody>

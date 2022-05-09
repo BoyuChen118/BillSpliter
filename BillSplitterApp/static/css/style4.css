@@ -16,6 +16,16 @@ p {
     color: #999;
 }
 
+label {
+    color: #999;
+}
+
+.col-5{
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
 div.expensesfields{
     padding-bottom: 20px;
 }
