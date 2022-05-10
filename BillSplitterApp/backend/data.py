@@ -25,7 +25,7 @@ class PendingExpense:
         self.email = email
         self.convert_items()
     def toJson(self):
-        jsonobj = {'expensename': self.expensename, 'email': self.email, 'actionrequired': "WaitingForSurveys",  'items': self.items}
+        jsonobj = {'expensename': self.expensename, 'email': self.email, 'actionrequired': "Waiting For Surveys",  'items': self.items}
         return jsonobj
 
 

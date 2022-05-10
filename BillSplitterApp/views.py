@@ -75,6 +75,7 @@ def landing(request, **kwargs):
             # -1 is haven't been set, 0 is even split 1 is uneven split
             defaultsplitoption = postdata['itemsplitmode']
             expensename = postdata['expensename']
+            print(f'expensename is {expensename}')
             # delete tempexpenses[deleteIndex] if deleteindex isn't -1
             deleteIndex = backendservice.Util().extractDelete(dict(postdata))
             # handle user delete item
@@ -104,8 +105,7 @@ def landing(request, **kwargs):
 
 # survey send out to everyone to collect info about who ordered what
 def survey(request, **kwargs):
-    enameandcode = kwargs.get('expensename').split(' ')
-    expensename, groupcode = enameandcode[0], enameandcode[1]
+    expensename, groupcode = kwargs.get('expensename'), kwargs.get('groupcode')
     finalitems = backendservice.Util().get_items(auth.get_pending_expenses(groupcode), expensename)
     if request.method == 'POST':
         surveydata = request.POST
