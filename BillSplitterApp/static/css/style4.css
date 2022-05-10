@@ -25,6 +25,9 @@ label {
     margin-right: auto;
     text-align: center;
 }
+.form-check{
+    padding-bottom: 2.5em;
+}
 
 div.expensesfields{
     padding-bottom: 20px;

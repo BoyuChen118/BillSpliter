@@ -419,9 +419,11 @@
               <th scope="row">{{ pexp.name }}</th>
               <td>{{ pexp.expensename }}</td>
               {% if pexp.actionrequired == "Pending Survey (click me)" %}
-              <td><a href='/survey/{{ pexp.expensename }} {{pages.4}}' style="color:yellow;">{{pexp.actionrequired}}</a></td>
+              <td><a href='/survey/{{ pexp.expensename }} {{pages.4}}' style="color:{{pexp.color}};">{{pexp.actionrequired}}</a></td>
               {% elif pexp.actionrequired == "WaitingForSurveys" %}
-              <td><a href='#'>{{pexp.actionrequired}}</a></td>
+              <td><a>{{pexp.actionrequired}}</a></td>
+              {% elif pexp.actionrequired == "Survey Completed!" %}
+              <td><a style="color:{{pexp.color}};">{{pexp.actionrequired}}</a></td>
               {% endif %}
             </tr>
             {% endfor %}

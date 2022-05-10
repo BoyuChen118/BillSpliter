@@ -53,7 +53,7 @@ class Authenticator:
         self.email = email
         return True
 
-    # get groups the user belongs to
+    # get groups the user belongs to in the form of array of groupcodes
     def get_groups(self):
         ret = []
         groupcodes = self.db.storage.get_collection(
@@ -69,6 +69,14 @@ class Authenticator:
     # retrieve groups[groupindex]
     def get_group_code(self, groupindex: int):
         return self.db.storage.get_collection('users').find_one({'_id': self.email})['groups'][groupindex]
+    
+    # get groupindex based on groupcode
+    def get_group_index(self, groupcode: str):
+        groups = self.db.storage.get_collection(
+            'users').find_one({'_id': self.email})['groups']
+        for i, group in enumerate(groups):
+            if groupcode == group:
+                return i
 
     # retrieve all member names and emails of groups[groupindex]
     def get_group_members(self, groupcode: str):
@@ -180,6 +188,40 @@ class Authenticator:
             return ret
         except Exception:
             return []
+    
+    # submit survey to group[groupcode] and check if all groupmembers have submitted data (if true then delete from pending expenses and add to ledger)
+    # example surveydata: {'selected0': [''], 'quantityselect0': ['1']}
+    def submit_survey(self, expensename, groupcode, surveydata: dict):
+        pendingexpenses = self.get_pending_expenses(groupcode)
+        survey = {'items': {}, 'oweTotal': 0.0}
+        selectedregex = re.compile(
+            r'selected[0-9]+')
+        itemindexes = []
+        for k,v in surveydata.items():
+            if re.fullmatch(selectedregex, k):
+                itemindexes.append(int(k[8:]))
+                
+            
+        for index, expenses in enumerate(pendingexpenses):
+            if expenses['expensename'] == expensename:
+                for itemindex in itemindexes:
+                    itemChose = expenses['items'][itemindex]
+                    quantityChose = int(surveydata[f'quantityselect{itemindex}'])
+                    survey['oweTotal'] += float(itemChose['itemprice']) * quantityChose
+                    survey['items']['itemname'] = itemChose['itemname']
+                    survey['items']['itemquantity'] = quantityChose
+                self.db.storage.get_collection(
+            'groups').find_one_and_update({'_id': groupcode}, {'$set': {f"pendingexpenses.{index}.surveys.{Util().encodeEmail(self.email)}": survey}})
+                
+        # TO-DO: check if everyone except payor submitted the survey
+                
+                
+    # check if current user has finished the survey for expense[expenseIndex]
+    def check_finished_survey(self, groupcode, expenseIndex: int):
+        pexpense = self.get_pending_expenses(groupcode)[expenseIndex]
+        if 'surveys' not in pexpense:
+            return False
+        return Util().encodeEmail(self.email) in pexpense['surveys']
 
 
 class PageGenerator:
@@ -213,13 +255,20 @@ class Util:
         return -1
 
     # add name to each pendingexpenses for display
-    def process_pendingexpenses(self, pendingexpenses, members, currentemail):
+    def process_pendingexpenses(self, groupcode, members, auth: Authenticator):
         members = {m[1]: m[0] for m in members}  # members will be {email:name}
-        for p in pendingexpenses:
+        currentemail = auth.email
+        pendingexpenses = auth.get_pending_expenses(groupcode)
+        for i, p in enumerate(pendingexpenses):
             p['name'] = members[p['email']]
-            if 'Wait' in p['actionrequired'] and p['email'] != currentemail:
-                p['actionrequired'] = 'Pending Survey (click me)'
-                p['color'] = 'yellow'
+            if p['email'] != currentemail:
+                if 'Wait' in p['actionrequired'] and  not auth.check_finished_survey(groupcode, i):  # incomplete survey
+                    p['actionrequired'] = 'Pending Survey (click me)'
+                    p['color'] = 'yellow'
+                elif 'Wait' in p['actionrequired'] and auth.check_finished_survey(groupcode, i):  # completed survey
+                    p['actionrequired'] = 'Survey Completed!'
+                    p['color'] = 'green'
+                    
         return pendingexpenses
 
     # encode email to replace '.' with '@' in order to avoid problem with mongodb
@@ -247,5 +296,5 @@ class Util:
                 for item in expense['items']:
                     itemname = item['itemname'] if item['itemquantity'] == 1 else f"{item['itemname']} *{item['itemquantity']}  "
                     itemprice = float(item['itemprice'])
-                    finalitems.append({'itemname': itemname, 'itemprice':  f' (${itemprice} ea )'})
+                    finalitems.append({'itemname': itemname, 'itemprice':  f' (${itemprice} ea )', 'itemquantity': int(item['itemquantity'])})
         return finalitems

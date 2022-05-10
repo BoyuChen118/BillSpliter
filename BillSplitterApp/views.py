@@ -80,6 +80,7 @@ def landing(request, **kwargs):
             # handle user delete item
             if deleteIndex != -1:
                 auth.delete_tempexpense(pages[4], deleteIndex)
+            # handle user submit item to temp expense and submitting temp expense as a whole
             elif request.POST.get('submititem') or request.POST.get('submitexpense'):
                 # update temporary expense
                 index = 0
@@ -97,7 +98,7 @@ def landing(request, **kwargs):
                 elif request.POST.get('submitexpense'):
                     errormsg = auth.pend_expense(pages[4], expensename)
         pendexpenses = backendservice.Util().process_pendingexpenses(
-            auth.get_pending_expenses(pages[4]), groupinfo, auth.email)
+            pages[4], groupinfo, auth)
         tempexpenses = auth.get_tempexpenses(pages[4])
     return render(request, 'landing.html', {'groups': groups, 'name': name, 'pages': pages, 'groupmembers': groupinfo, 'tempexpenses': tempexpenses, 'pendingexpenses': pendexpenses, 'tempitemcount': len(tempexpenses), 'errmsg': errormsg, 'defaultsplitoption': defaultsplitoption, 'expname': expensename})
 
@@ -106,4 +107,10 @@ def survey(request, **kwargs):
     enameandcode = kwargs.get('expensename').split(' ')
     expensename, groupcode = enameandcode[0], enameandcode[1]
     finalitems = backendservice.Util().get_items(auth.get_pending_expenses(groupcode), expensename)
+    if request.method == 'POST':
+        surveydata = request.POST
+        auth.submit_survey(expensename, groupcode, surveydata)  # submit survey to group
+        response = redirect(f'/landing/groups/{auth.get_group_index(groupcode)}')
+        return response
+        
     return render(request, 'survey.html', {'expensename': expensename, 'items': finalitems})
