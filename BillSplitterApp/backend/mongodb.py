@@ -224,7 +224,8 @@ class Authenticator:
             # update status of survey to archivable
             self.db.storage.get_collection(
             'groups').find_one_and_update({'_id': groupcode}, {'$set': {f'pendingexpenses.{pexpenseIndex}.actionrequired': 'Everyone Completed Survey (click me)'}})
-            # TO-DO generate transaction report based on all surveys
+            # generate transaction report based on all surveys
+            self.calculate_expenses(self.get_pending_expenses(groupcode)[pexpenseIndex])
                 
     # check if current user has finished the survey for expense[expenseIndex]
     def check_finished_survey(self, groupcode, expenseIndex: int):
@@ -232,10 +233,54 @@ class Authenticator:
         if 'surveys' not in pexpense:
             return False
         return Util().encodeEmail(self.email) in pexpense['surveys']
-    
+
+
     # calcualte how much each member owe payor
-    def calculate_expenses():
-        pass
+    def calculate_expenses(self, pexpense: dict):
+        # pseudo-code:
+        # loop over items on the respective pendingexpense[pindex]
+        # for each item, find member who mentioned it in his/her survey
+        # get total number of "shares", divide total item price(price*quantity)
+        # by that number and multiply each person's share to get total owed to payer
+        #
+        # Uneven split
+        # "Share" price is calculated differently depending on if the item is deemed a shared item or
+        # non share item.  non share item price is simply just item price while shared item price is 
+        # calculated with a more complicated algorithm
+        #
+        # Even split
+        # amount owe simply calculated by totalprice / number of members
+        expensesheet = {} # {email: amoutowe}
+        surveys = (dict)(pexpense['surveys'])
+        for item in pexpense['items']:
+            totalprice = float(item['itemprice']) * int(item['itemquantity'])
+            if int(item['itemsplitmode']) == 1:  # uneven split
+                totalshares = 0
+                itemname = item['itemname']
+                tempsheet = {} # {email: shares of item} tally how many shares of the current item each member claims
+                for email, surveyitems in surveys.items():
+                    if itemname in surveyitems['items']:
+                        email = Util().decodeEmail(email)
+                        tempsheet[email] = surveyitems['items'][itemname]
+                        totalshares += surveyitems['items'][itemname]
+                totalshares = 1 if not totalshares else totalshares  # avoid divide by 0 error
+                pricepershare = (totalprice / totalshares) if totalshares >= int(item['itemquantity']) else float(item['itemprice'])  # only use "share" price when it's a share item otherwise just use itemprice
+                for email, shares in tempsheet.items():
+                    if email not in expensesheet:
+                        expensesheet[email] = 0
+                    expensesheet[email] += shares * pricepershare
+            else: # even split
+                membercount = len(surveys.items())+1
+                for email in surveys.keys():
+                    email = Util().decodeEmail(email)
+                    if email not in expensesheet:
+                        expensesheet[email] = 0
+                    expensesheet[email] += totalprice / membercount
+                    
+                
+        print(expensesheet)
+                    
+        
 
 
 class PageGenerator:
@@ -306,13 +351,14 @@ class Util:
             email[index] = '.'
         return "".join(email)
     
-    # retrieve items from pending expense with name
+    # retrieve items from pending expense with name but splitmode isn't 0
     def get_items(self, expenses, name):  
         finalitems = []
         for expense in expenses:
             if expense['expensename'] == name:
                 for item in expense['items']:
-                    itemname = item['itemname'] if item['itemquantity'] == 1 else f"{item['itemname']} *{item['itemquantity']}  "
-                    itemprice = float(item['itemprice'])
-                    finalitems.append({'itemname': itemname, 'itemprice':  f' (${itemprice} ea )', 'itemquantity': int(item['itemquantity'])})
+                    if item['itemsplitmode'] == 1: # only survey uneven split items
+                        itemname = item['itemname'] if item['itemquantity'] == 1 else f"{item['itemname']} *{item['itemquantity']}  "
+                        itemprice = float(item['itemprice'])
+                        finalitems.append({'itemname': itemname, 'itemprice':  f' (${itemprice} ea )', 'itemquantity': int(item['itemquantity'])})
         return finalitems
