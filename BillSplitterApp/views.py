@@ -107,6 +107,8 @@ def landing(request, **kwargs):
 def survey(request, **kwargs):
     expensename, groupcode = kwargs.get('expensename'), kwargs.get('groupcode')
     finalitems = backendservice.Util().get_items(auth.get_pending_expenses(groupcode), expensename)
+    for finalitem in finalitems:
+        print(finalitem['itemsplitmode'])
     if request.method == 'POST':
         surveydata = request.POST
         auth.submit_survey(expensename, groupcode, surveydata)  # submit survey to group

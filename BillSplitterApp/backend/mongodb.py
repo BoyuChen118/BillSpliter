@@ -174,7 +174,7 @@ class Authenticator:
         expenses = self.get_tempexpenses(groupcode)
         pexpenses = self.get_pending_expenses(groupcode)
         for pexpense in pexpenses:
-            if pexpense['expensename'] == expensename and pexpense['email'] == self.email:
+            if pexpense['expensename'] == expensename:
                 return 'An expense of the same name already exists'
         if len(expenses) == 0:
             return 'Expenses form can\'t be empty'
@@ -356,9 +356,8 @@ class Util:
         finalitems = []
         for expense in expenses:
             if expense['expensename'] == name:
-                for item in expense['items']:
-                    if item['itemsplitmode'] == 1: # only survey uneven split items
+                for item in expense['items']:  # return both evenly split and unevenly split items
                         itemname = item['itemname'] if item['itemquantity'] == 1 else f"{item['itemname']} *{item['itemquantity']}  "
                         itemprice = float(item['itemprice'])
-                        finalitems.append({'itemname': itemname, 'itemprice':  f' (${itemprice} ea )', 'itemquantity': int(item['itemquantity'])})
+                        finalitems.append({'itemname': itemname, 'itemprice':  f' (${itemprice} ea )', 'itemquantity': int(item['itemquantity']), 'itemsplitmode': item['itemsplitmode']})
         return finalitems

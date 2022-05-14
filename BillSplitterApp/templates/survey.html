@@ -51,6 +51,7 @@
           <h1 class="fw-bold">Survey for {{ expensename }}</h1>
           <h3 class="fw-bold">Choose all items you bought or shared with others</h3>
           {% for item in items%}
+          {% if item.itemsplitmode == 1%}
           <div class="form-check">
             <input name="selected{{forloop.counter0}}" class="form-check-input" type="checkbox" value="" id="flexCheckDefault{{forloop.counter0}}" onclick='handleClick(this,{{forloop.counter0}});' />
             <label class="form-check-label" for="flexCheckDefault{{forloop.counter0}}">
@@ -69,6 +70,13 @@
                 {% endwith %}
             </select>
           </div>
+          {% else %} {% comment %} if the item is evenly split then only show it {% endcomment %}
+          <div class="form-check">
+          <label class="form-check-label">
+            {{ item.itemname }}{{ item.itemprice }} (evenly split by everyone)
+          </label>
+        </div>
+          {% endif %}
           {% endfor %}
       
           <!-- Checked checkbox -->
