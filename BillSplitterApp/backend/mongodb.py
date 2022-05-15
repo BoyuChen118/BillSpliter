@@ -219,8 +219,8 @@ class Authenticator:
         
         surveyLength = len(self.db.storage.get_collection(
             'groups').find_one({'_id': groupcode})['pendingexpenses'][pexpenseIndex]['surveys'])
-        # check if everyone except payor submitted the survey
-        if surveyLength == len(self.get_group_members(groupcode))-1:
+        # check if everyone including payor submitted the survey
+        if surveyLength == len(self.get_group_members(groupcode)):
             # update status of survey to archivable
             self.db.storage.get_collection(
             'groups').find_one_and_update({'_id': groupcode}, {'$set': {f'pendingexpenses.{pexpenseIndex}.actionrequired': 'Everyone Completed Survey (click me)'}})
@@ -270,7 +270,7 @@ class Authenticator:
                         expensesheet[email] = 0
                     expensesheet[email] += shares * pricepershare
             else: # even split
-                membercount = len(surveys.items())+1
+                membercount = len(surveys.items())
                 for email in surveys.keys():
                     email = Util().decodeEmail(email)
                     if email not in expensesheet:
@@ -320,16 +320,19 @@ class Util:
         pendingexpenses = auth.get_pending_expenses(groupcode)
         for i, p in enumerate(pendingexpenses):
             p['name'] = members[p['email']]
-            if p['email'] != currentemail:
-                if 'Wait' in p['actionrequired'] and  not auth.check_finished_survey(groupcode, i):  # incomplete survey
-                    p['actionrequired'] = 'Pending Survey (click me)'
-                    p['color'] = 'yellow'
-                elif auth.check_finished_survey(groupcode, i):  # completed survey
+            if 'Wait' in p['actionrequired'] and  not auth.check_finished_survey(groupcode, i):  # incomplete survey
+                p['actionrequired'] = 'Pending Survey (click me)'
+                p['color'] = 'yellow'
+                continue
+            elif auth.check_finished_survey(groupcode, i) :  # completed survey
+                if p['email'] != currentemail: # check if its other user (current user will just have wait for surveys displayed)
                     p['actionrequired'] = 'Survey Completed!'
                     p['color'] = 'green'
-            else:  # pexenpse if owned by current logged in user
-                if 'Everyone' in p['actionrequired']:
-                    p['color'] = 'lightblue'
+                    continue
+                
+            # pexenpse if owned by current logged in user
+            if 'Everyone' in p['actionrequired']:
+                p['color'] = 'lightblue'
                 
                     
         return pendingexpenses
