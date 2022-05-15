@@ -425,7 +425,7 @@
               {% elif pexp.actionrequired == "Survey Completed!" %}
               <td><a style="color:{{pexp.color}};"><i class="fa fa-check" aria-hidden="true"></i> {{pexp.actionrequired}}</a></td>
               {% elif pexp.actionrequired == "Everyone Completed Survey (click me)" %}
-              <td><a style="color:{{pexp.color}};"><i class="fa fa-handshake" aria-hidden="true"></i> {{pexp.actionrequired}}</a></td>
+              <td><a href='/results/{{ pages.4 }}/{{ pexp.expensename }}' style="color:{{pexp.color}};"><i class="fa fa-handshake" aria-hidden="true"></i> {{pexp.actionrequired}}</a></td>
               {% endif %}
             </tr>
             {% endfor %}

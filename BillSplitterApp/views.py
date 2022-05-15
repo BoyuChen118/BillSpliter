@@ -114,3 +114,9 @@ def survey(request, **kwargs):
         return response
         
     return render(request, 'survey.html', {'expensename': expensename, 'items': finalitems})
+
+
+
+def results(request, **kwargs):
+    expensename, groupcode = kwargs.get('expensename'), kwargs.get('groupcode')
+    return HttpResponse("<html><body>This is the results page</body></html>")

@@ -25,5 +25,6 @@ urlpatterns = [
     path('signup/', views.signup),
     path('survey/<str:expensename>/<str:groupcode>', views.survey),
     path('landing/<str:page>/<str:groupindex>/', views.landing),
+    path('results/<str:groupcode>/<str:expensename>/', views.results),
     path('landing/<str:page>/', views.landing),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
