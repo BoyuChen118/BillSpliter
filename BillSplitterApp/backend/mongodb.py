@@ -225,7 +225,9 @@ class Authenticator:
             self.db.storage.get_collection(
             'groups').find_one_and_update({'_id': groupcode}, {'$set': {f'pendingexpenses.{pexpenseIndex}.actionrequired': 'Everyone Completed Survey (click me)'}})
             # generate transaction report based on all surveys
-            self.calculate_expenses(self.get_pending_expenses(groupcode)[pexpenseIndex])
+            expensesheet = self.calculate_expenses(self.get_pending_expenses(groupcode)[pexpenseIndex])
+            self.db.storage.get_collection(
+            'groups').find_one_and_update({'_id': groupcode}, {'$set': {f'pendingexpenses.{pexpenseIndex}.expensesheet': expensesheet}})
                 
     # check if current user has finished the survey for expense[expenseIndex]
     def check_finished_survey(self, groupcode, expenseIndex: int):
@@ -234,6 +236,28 @@ class Authenticator:
             return False
         return Util().encodeEmail(self.email) in pexpense['surveys']
 
+    # retreive submitted surveys in the form of {username: [[itemname*quantity], amount_owe_to_payer, email]}
+    def get_survey_data(self, groupcode, expensename):
+        pexpenses = self.get_pending_expenses(groupcode)
+        memberinfo = {member[1]:member[0] for member in self.get_group_members(groupcode)}
+        surveydata = {}
+        for pexpense in pexpenses:
+            if pexpense['expensename'] == expensename:
+                surveys = pexpense['surveys']
+                expensesheet = pexpense['expensesheet']
+                for email, data in surveys.items():
+                    username = memberinfo[Util().decodeEmail(email)]
+                    surveydata[username] = [[], 0]
+                    for itemname, quantity in data['items'].items():
+                        surveydata[username][0].append(f"{itemname}*{quantity}")
+                for email, amount in (dict)(expensesheet).items():
+                    username = memberinfo[email]
+                    if username not in surveydata:
+                        surveydata = [[], 0]
+                    surveydata[username][1] = amount
+                    surveydata[username].append(email)
+        return surveydata
+                
 
     # calcualte how much each member owe payor
     def calculate_expenses(self, pexpense: dict):
@@ -264,7 +288,7 @@ class Authenticator:
                         tempsheet[email] = surveyitems['items'][itemname]
                         totalshares += surveyitems['items'][itemname]
                 totalshares = 1 if not totalshares else totalshares  # avoid divide by 0 error
-                pricepershare = (totalprice / totalshares) if totalshares >= int(item['itemquantity']) else float(item['itemprice'])  # only use "share" price when it's a share item otherwise just use itemprice
+                pricepershare = (totalprice / totalshares) if totalshares > int(item['itemquantity']) else float(item['itemprice'])  # only use "share" price when it's a share item otherwise just use itemprice
                 for email, shares in tempsheet.items():
                     if email not in expensesheet:
                         expensesheet[email] = 0
@@ -278,8 +302,39 @@ class Authenticator:
                     expensesheet[email] += totalprice / membercount
                     
                 
-        print(expensesheet)
-                    
+        return expensesheet
+    
+    # triggered when payer wants to resolve the expense, the algorithm recalculates how much each person owe payer taken into account the new expense
+    def resolve_expense(self, surveydata, groupcode, expensename):
+        # survedata format: {username: [[itemname*quantity], amount_owe_to_payer, email]}
+        # 1. check if payer owes debter if yes then subtract that amount by this expense, any negative turns into amount owed to payer by debter
+        # 2. do the above step for every debter. caution: ignore amount owed to self (in other words ignore when payer == debter)
+        # 3. delete the pending expense and add to ledger
+        data = {v[2]:v[1] for v in surveydata.values()}
+        payeremail = self.email
+        payer = self.db.storage.get_collection('users').find_one({'_id':payeremail})
+        for debteremail, amount in data.items():
+            if debteremail != payeremail:
+                # check if payer owes debter
+                if 'owes' in payer and Util().encodeEmail(debteremail) in payer['owes']:
+                    finalamount  = payer['owes'][Util().encodeEmail(debteremail)] - amount
+                    if finalamount < 0:  # debter now owes payor
+                        self.db.storage.get_collection('users').find_one_and_update({'_id': debteremail}, {'$set': {f'owes.{Util().encodeEmail(payeremail)}': abs(finalamount)}})
+                    else: # payer still owes debter but just a lesser amount
+                        self.db.storage.get_collection('users').find_one_and_update({'_id': payeremail}, {'$set': {f'owes.{Util().encodeEmail(debteremail)}': finalamount}})
+                else: # debter owes payer or they don't have any interactions yet
+                    debter = self.db.storage.get_collection('users').find_one({'_id': debteremail})
+                    originalamount = 0
+                    if 'owes' in debter and Util().encodeEmail(payeremail) in debter['owes']:
+                        originalamount = debter['owes'][Util().encodeEmail(payeremail)]
+                    print(f"original amount is {originalamount}")
+                    self.db.storage.get_collection('users').find_one_and_update({'_id': debteremail}, {'$set': {f'owes.{Util().encodeEmail(payeremail)}': originalamount+amount}})
+        
+        # delete pending expense
+        self.db.storage.get_collection(
+            'groups').find_one_and_update({'_id': groupcode}, {'$pull': {f"pendingexpenses": {"expensename": expensename}}})
+        
+        
         
 
 

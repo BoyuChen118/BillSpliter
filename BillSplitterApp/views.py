@@ -51,6 +51,7 @@ def landing(request, **kwargs):
     groupindex = kwargs.get('groupindex', None)
     groupindex = int(groupindex) if groupindex is not None else None
     data = request.GET
+    resolved = data['resolved'] if 'resolved' in data else None
     errormsg = ''
     if 'groupname' in data:   # create group operation
         auth.create_group(data.get('groupname'))
@@ -101,7 +102,7 @@ def landing(request, **kwargs):
         pendexpenses = backendservice.Util().process_pendingexpenses(
             pages[4], groupinfo, auth)
         tempexpenses = auth.get_tempexpenses(pages[4])
-    return render(request, 'landing.html', {'groups': groups, 'name': name, 'pages': pages, 'groupmembers': groupinfo, 'tempexpenses': tempexpenses, 'pendingexpenses': pendexpenses, 'tempitemcount': len(tempexpenses), 'errmsg': errormsg, 'defaultsplitoption': defaultsplitoption, 'expname': expensename})
+    return render(request, 'landing.html', {'groups': groups, 'name': name, 'pages': pages, 'groupmembers': groupinfo, 'tempexpenses': tempexpenses, 'pendingexpenses': pendexpenses, 'tempitemcount': len(tempexpenses), 'errmsg': errormsg, 'defaultsplitoption': defaultsplitoption, 'expname': expensename, 'infomsg': resolved})
 
 # survey send out to everyone to collect info about who ordered what
 def survey(request, **kwargs):
@@ -116,7 +117,18 @@ def survey(request, **kwargs):
     return render(request, 'survey.html', {'expensename': expensename, 'items': finalitems})
 
 
-
+# page to display what each person ordered, user can cancel the pending expense while there're still people who haven't completed their survey
 def results(request, **kwargs):
-    expensename, groupcode = kwargs.get('expensename'), kwargs.get('groupcode')
-    return HttpResponse("<html><body>This is the results page</body></html>")
+    expensename, groupcode, state = kwargs.get('expensename'), kwargs.get('groupcode'), kwargs.get('state')
+    surveydata = auth.get_survey_data(groupcode, expensename)
+    if state == 'completed':  # everyone completed survey
+        if request.method == 'POST':
+            if 'resolve' in request.POST:
+                auth.resolve_expense(surveydata, groupcode, expensename)
+                response = redirect(f'/landing/groups/{auth.get_group_index(groupcode)}?resolved=Expense resolved!')
+                return response
+        return render(request, 'results.html', {'surveydata': surveydata})
+    else:
+        pass
+    
+    
