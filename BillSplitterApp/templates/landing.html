@@ -151,7 +151,7 @@
 
         <ul class="list-unstyled CTAs">
           <li>
-            <a href="https://bootstrapious.com/tutorial/files/sidebar.zip"
+            <a href="/"
               ><i class="fa fa-power-off" id="poweroff"></i> LOGOUT</a
             >
           </li>
@@ -270,7 +270,7 @@
         </div>
         {% elif infomsg %}
         <div class="alert alert-success alert-dismissible fade show" role="alert">{{infomsg}}
-          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <button onclick="window.location.href='/landing/groups/{{ groupindex }}'" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
@@ -418,7 +418,7 @@
         <table class="table table-striped table-dark">
           <thead>
             <tr>
-              <th scope="col">Name</th>
+              <th scope="col">Payer</th>
               <th scope="col">ExpenseName</th>
               <th scope="col">Status</th>
             </tr>
@@ -448,7 +448,7 @@
             <tr>
               <th scope="col">Name</th>
               <th scope="col">Email</th>
-              <th scope="col">Amount Owe</th>
+              <th scope="col">Debts Between You</th>
             </tr>
           </thead>
           <tbody>
@@ -456,7 +456,11 @@
             <tr>
               <th scope="row">{{ groupmember.0 }}</th>
               <td>{{ groupmember.1 }}</td>
-              <td>$0</td>
+              {% if groupmember.2 and groupmember.3 %}
+              <td style="color:{{ groupmember.3 }};">{{ groupmember.2 }}</td>
+              {% else %}
+              <td>N/A</td>
+              {% endif %}
             </tr>
             {% endfor %}
           </tbody>

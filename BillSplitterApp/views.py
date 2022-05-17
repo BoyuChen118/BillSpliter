@@ -63,7 +63,7 @@ def landing(request, **kwargs):
 
     # represent state of all page, false=page is not on display, true=page is on display.  [home, about, profile, contact, groupcode]
     pages = backendservice.PageGenerator(auth).generatepages(page, groupindex)
-    groupinfo = []  # array of [membername, memberemail]
+    groupinfo = []  # array of [membername, memberemail] ---> array of [membername, memberemail, amountowetothisuser]
     tempexpenses = {}  # number of items in temporary expense
     pendexpenses = []  # all pending expenses in the group
     expensename = ''
@@ -102,7 +102,8 @@ def landing(request, **kwargs):
         pendexpenses = backendservice.Util().process_pendingexpenses(
             pages[4], groupinfo, auth)
         tempexpenses = auth.get_tempexpenses(pages[4])
-    return render(request, 'landing.html', {'groups': groups, 'name': name, 'pages': pages, 'groupmembers': groupinfo, 'tempexpenses': tempexpenses, 'pendingexpenses': pendexpenses, 'tempitemcount': len(tempexpenses), 'errmsg': errormsg, 'defaultsplitoption': defaultsplitoption, 'expname': expensename, 'infomsg': resolved})
+    auth.attach_amount_owe(groupinfo)
+    return render(request, 'landing.html', {'groups': groups, 'groupindex': groupindex,'name': name, 'pages': pages, 'groupmembers': groupinfo, 'tempexpenses': tempexpenses, 'pendingexpenses': pendexpenses, 'tempitemcount': len(tempexpenses), 'errmsg': errormsg, 'defaultsplitoption': defaultsplitoption, 'expname': expensename, 'infomsg': resolved})
 
 # survey send out to everyone to collect info about who ordered what
 def survey(request, **kwargs):

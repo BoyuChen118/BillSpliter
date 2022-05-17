@@ -87,6 +87,39 @@ class Authenticator:
             memberinfo.append([self.db.storage.get_collection(
                 'users').find_one({'_id': memberemail})['nickname'], memberemail])
         return memberinfo
+    
+    # turn array of [membername, memberemail] to [membername, memberemail, displaytext, displaytextcolor]
+    def attach_amount_owe(self, groupinfo):
+        try:
+            owes = self.db.storage.get_collection('users').find_one({'_id': self.email})['owes']
+        except Exception:
+            owes = []
+        for i in range(len(groupinfo)):
+            memberinfo = groupinfo[i]
+            
+            try:
+                oweuser = self.db.storage.get_collection('users').find_one({'_id': memberinfo[1]})['owes']
+            except Exception:
+                oweuser = []
+                
+            email = Util().encodeEmail(memberinfo[1])
+            useremail = Util().encodeEmail(self.email)
+            amountowe = 0
+            textcolor = ''
+            text = ''
+            if useremail in oweuser:  # some other user owes the logged in user
+                amountowe = oweuser[useremail]
+                text = f'Owes you ${amountowe}'
+                textcolor = 'green'
+            elif email in owes:  # logged in user owes some other user
+                amountowe = owes[email]
+                text = f'You owe this user ${amountowe}'
+                textcolor = 'red'
+            groupinfo[i].append(text)
+            groupinfo[i].append(textcolor)
+        return
+                
+            
 
     # get the display name of the user
 
@@ -244,18 +277,18 @@ class Authenticator:
         for pexpense in pexpenses:
             if pexpense['expensename'] == expensename:
                 surveys = pexpense['surveys']
-                expensesheet = pexpense['expensesheet']
+                expensesheet = pexpense['expensesheet']   # expensesheet are simply how much each person owes payer (people who submitted empty survey aren't in expensesheet)
                 for email, data in surveys.items():
                     username = memberinfo[Util().decodeEmail(email)]
-                    surveydata[username] = [[], 0]
+                    surveydata[username] = [[], 0, '']
                     for itemname, quantity in data['items'].items():
                         surveydata[username][0].append(f"{itemname}*{quantity}")
+                    surveydata[username][2] = Util().decodeEmail(email)
                 for email, amount in (dict)(expensesheet).items():
                     username = memberinfo[email]
                     if username not in surveydata:
-                        surveydata = [[], 0]
+                        surveydata = [[], 0, email]
                     surveydata[username][1] = amount
-                    surveydata[username].append(email)
         return surveydata
                 
 
@@ -318,11 +351,12 @@ class Authenticator:
                 # check if payer owes debter
                 if 'owes' in payer and Util().encodeEmail(debteremail) in payer['owes']:
                     finalamount  = payer['owes'][Util().encodeEmail(debteremail)] - amount
-                    if finalamount < 0:  # debter now owes payor
+                    if finalamount < 0:  # debter now owes payor, payor no longer owes debter
                         self.db.storage.get_collection('users').find_one_and_update({'_id': debteremail}, {'$set': {f'owes.{Util().encodeEmail(payeremail)}': abs(finalamount)}})
+                        self.db.storage.get_collection('users').find_one_and_update({'_id': payeremail}, {'$unset': {f'owes.{Util().encodeEmail(debteremail)}': 0}})
                     else: # payer still owes debter but just a lesser amount
                         self.db.storage.get_collection('users').find_one_and_update({'_id': payeremail}, {'$set': {f'owes.{Util().encodeEmail(debteremail)}': finalamount}})
-                else: # debter owes payer or they don't have any interactions yet
+                else: # debter owes payer already or they don't have any interactions yet
                     debter = self.db.storage.get_collection('users').find_one({'_id': debteremail})
                     originalamount = 0
                     if 'owes' in debter and Util().encodeEmail(payeremail) in debter['owes']:
