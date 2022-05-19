@@ -122,14 +122,11 @@ def survey(request, **kwargs):
 def results(request, **kwargs):
     expensename, groupcode, state = kwargs.get('expensename'), kwargs.get('groupcode'), kwargs.get('state')
     surveydata = auth.get_survey_data(groupcode, expensename)
-    if state == 'completed':  # everyone completed survey
-        if request.method == 'POST':
-            if 'resolve' in request.POST:
-                auth.resolve_expense(surveydata, groupcode, expensename)
-                response = redirect(f'/landing/groups/{auth.get_group_index(groupcode)}?resolved=Expense resolved!')
-                return response
-        return render(request, 'results.html', {'surveydata': surveydata})
-    else:
-        pass
+    if request.method == 'POST':
+        if 'resolve' in request.POST:
+            auth.resolve_expense(surveydata, groupcode, expensename)
+            response = redirect(f'/landing/groups/{auth.get_group_index(groupcode)}?resolved=Expense resolved!')
+            return response
+    return render(request, 'results.html', {'surveydata': surveydata})
     
     

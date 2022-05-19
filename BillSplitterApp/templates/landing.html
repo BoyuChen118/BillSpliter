@@ -411,6 +411,7 @@
             <!-- group page: temp expenses submit and reset buttons  -->
             <button name="submitexpense" value="submitexpense" type="submit" class="btn btn-dark" onclick="return confirm('You won\'t be able to change your expense report anymore after this step.  Click ok to continue')">Submit</button>
             <button type="reset" class="btn btn-dark">Cancel</button>
+            <button type="submitscan" value="submitscan"><i class="fa fa-camera"></i> Scan Receipt</button>
           </form>
         </div>
         <div class="line"></div>
@@ -459,7 +460,7 @@
               {% if groupmember.2 and groupmember.3 %}
               <td style="color:{{ groupmember.3 }};">{{ groupmember.2 }}</td>
               {% else %}
-              <td>N/A</td>
+              <td>$0</td>
               {% endif %}
             </tr>
             {% endfor %}

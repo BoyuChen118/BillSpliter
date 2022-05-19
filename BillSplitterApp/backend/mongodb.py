@@ -109,12 +109,14 @@ class Authenticator:
             text = ''
             if useremail in oweuser:  # some other user owes the logged in user
                 amountowe = oweuser[useremail]
-                text = f'Owes you ${amountowe}'
-                textcolor = 'green'
+                if int(amountowe) != 0:
+                    text = f'Owes you ${amountowe}'
+                    textcolor = 'green'
             elif email in owes:  # logged in user owes some other user
                 amountowe = owes[email]
-                text = f'You owe this user ${amountowe}'
-                textcolor = 'red'
+                if int(amountowe) != 0:
+                    text = f'You owe this user ${amountowe}'
+                    textcolor = 'red'
             groupinfo[i].append(text)
             groupinfo[i].append(textcolor)
         return
@@ -257,10 +259,12 @@ class Authenticator:
             # update status of survey to archivable
             self.db.storage.get_collection(
             'groups').find_one_and_update({'_id': groupcode}, {'$set': {f'pendingexpenses.{pexpenseIndex}.actionrequired': 'Everyone Completed Survey (click me)'}})
-            # generate transaction report based on all surveys
-            expensesheet = self.calculate_expenses(self.get_pending_expenses(groupcode)[pexpenseIndex])
-            self.db.storage.get_collection(
-            'groups').find_one_and_update({'_id': groupcode}, {'$set': {f'pendingexpenses.{pexpenseIndex}.expensesheet': expensesheet}})
+            
+            
+        # generate transaction report based on all surveys
+        expensesheet = self.calculate_expenses(self.get_pending_expenses(groupcode)[pexpenseIndex])
+        self.db.storage.get_collection(
+        'groups').find_one_and_update({'_id': groupcode}, {'$set': {f'pendingexpenses.{pexpenseIndex}.expensesheet': expensesheet}})
                 
     # check if current user has finished the survey for expense[expenseIndex]
     def check_finished_survey(self, groupcode, expenseIndex: int):

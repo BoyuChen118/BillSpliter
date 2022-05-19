@@ -8,6 +8,7 @@ class item:  # use for temporary expense
         self.name = name
         self.price = price
         self.quantity = quantity
+        # splitmode: 0 == split evenly among everyone,  1 == unevenly split
         self.splitmode = splitmode
 
     # serialize the object to a json
