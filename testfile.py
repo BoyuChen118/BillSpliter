@@ -14,20 +14,20 @@ import requests
 
 
 
-print("=== Python Receipt OCR ===")
+# print("=== Python Receipt OCR ===")
 
-receiptOcrEndpoint = 'https://ocr.asprise.com/api/v1/receipt' # Receipt OCR API endpoint
-imageFile = "receipt.jpg" # // Modify it to use your own file
-r = requests.post(receiptOcrEndpoint, data = { \
-  'client_id': 'TEST',        # Use 'TEST' for testing purpose \
-  'recognizer': 'auto',       # can be 'US', 'CA', 'JP', 'SG' or 'auto' \
-  'ref_no': 'ocr_python_123', # optional caller provided ref code \
-  }, \
-  files = {"file": open(imageFile, "rb")})
-print(r.json())
-items = r.json()['receipts'][0]['items'] # result in JSON
-for item in items:
-    print(f"{item['qty']} {item['description']}:     ${item['amount']}")
+# receiptOcrEndpoint = 'https://ocr.asprise.com/api/v1/receipt' # Receipt OCR API endpoint
+# imageFile = "receipt.jpg" # // Modify it to use your own file
+# r = requests.post(receiptOcrEndpoint, data = { \
+#   'client_id': 'TEST',        # Use 'TEST' for testing purpose \
+#   'recognizer': 'auto',       # can be 'US', 'CA', 'JP', 'SG' or 'auto' \
+#   'ref_no': 'ocr_python_123', # optional caller provided ref code \
+#   }, \
+#   files = {"file": open(imageFile, "rb")})
+# print(r.json())
+# items = r.json()['receipts'][0]['items'] # result in JSON
+# for item in items:
+#     print(f"{item['qty']} {item['description']}:     ${item['amount']}")
 
 
 
@@ -37,37 +37,37 @@ for item in items:
 
 
 #receipt ocr with german API
-# import cv2
-# import imutils
-# def ocr_file(filename, overlay=False, api_key=receipt_ocr_api_key, language='eng'):
-#     """ OCR.space API request with local file.
-#         Python3.5 - not tested on 2.7
-#     :param filename: Your file path & name.
-#     :param overlay: Is OCR.space overlay required in your response.
-#                     Defaults to False.
-#     :param api_key: OCR.space API key.
-#                     Defaults to 'helloworld'.
-#     :param language: Language code to be used in OCR.
-#                     List of available language codes can be found on https://ocr.space/OCRAPI
-#                     Defaults to 'en'.
-#     :return: Result in JSON format.
-#     """
+import cv2
+import imutils
+def ocr_file(filename, overlay=False, api_key=receipt_ocr_api_key, language='eng'):
+    """ OCR.space API request with local file.
+        Python3.5 - not tested on 2.7
+    :param filename: Your file path & name.
+    :param overlay: Is OCR.space overlay required in your response.
+                    Defaults to False.
+    :param api_key: OCR.space API key.
+                    Defaults to 'helloworld'.
+    :param language: Language code to be used in OCR.
+                    List of available language codes can be found on https://ocr.space/OCRAPI
+                    Defaults to 'en'.
+    :return: Result in JSON format.
+    """
 
-#     payload = {'isOverlayRequired': overlay,
-#                'apikey': api_key,
-#                'language': language,
-#                'isTable': True,
-#                }
-#     with open(filename, 'rb') as f:
-#         r = requests.post('https://api.ocr.space/parse/image',
-#                           files={filename: f},
-#                           data=payload,
-#                           )
-#     print(r.text)
-#     print('----------------------------json below----------------------------')
-#     return r.json()['ParsedResults'][0]['ParsedText']
+    payload = {'isOverlayRequired': overlay,
+               'apikey': api_key,
+               'language': language,
+               'isTable': True,
+               }
+    with open(filename, 'rb') as f:
+        r = requests.post('https://api.ocr.space/parse/image',
+                          files={filename: f},
+                          data=payload,
+                          )
+    print(r.text)
+    print('----------------------------json below----------------------------')
+    return r.json()['ParsedResults'][0]['ParsedText']
 
-# print(ocr_file('receipt13.png'))
+print(ocr_file('receipt12.png'))
 
 
 

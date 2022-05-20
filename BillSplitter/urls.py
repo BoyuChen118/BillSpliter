@@ -27,4 +27,9 @@ urlpatterns = [
     path('landing/<str:page>/<str:groupindex>/', views.landing),
     path('results/<str:groupcode>/<str:expensename>/<str:state>', views.results),
     path('landing/<str:page>/', views.landing),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    path('scanfile/', views.scanfile),
+]
+
+# TO-DO: way static files and media files are handled need to be changed on deployment
+if settings.DEBUG:
+    urlpatterns += (static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT))

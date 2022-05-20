@@ -1,7 +1,9 @@
 from django.shortcuts import redirect, render
 from django.http import HttpResponse
 from urllib3 import HTTPResponse
+from django.core.files.storage import FileSystemStorage
 import BillSplitterApp.backend.mongodb as backendservice
+import BillSplitterApp.backend.scanner as scan
 import BillSplitterApp.backend.data as datastructs
 import datetime
 
@@ -76,14 +78,13 @@ def landing(request, **kwargs):
             # -1 is haven't been set, 0 is even split 1 is uneven split
             defaultsplitoption = postdata['itemsplitmode']
             expensename = postdata['expensename']
-            print(f'expensename is {expensename}')
             # delete tempexpenses[deleteIndex] if deleteindex isn't -1
             deleteIndex = backendservice.Util().extractDelete(dict(postdata))
             # handle user delete item
             if deleteIndex != -1:
                 auth.delete_tempexpense(pages[4], deleteIndex)
             # handle user submit item to temp expense and submitting temp expense as a whole
-            elif request.POST.get('submititem') or request.POST.get('submitexpense'):
+            elif request.POST.get('submititem') or request.POST.get('submitexpense') or request.POST.get('submitscan'):
                 # update temporary expense
                 index = 0
                 while index < auth.get_tempexpense_length(pages[4]):
@@ -99,6 +100,8 @@ def landing(request, **kwargs):
                 # user pressed the submit button (submit temp expense as pending expense)
                 elif request.POST.get('submitexpense'):
                     errormsg = auth.pend_expense(pages[4], expensename)
+                elif request.POST.get('submitscan'):
+                    return redirect('/scanfile')
         pendexpenses = backendservice.Util().process_pendingexpenses(
             pages[4], groupinfo, auth)
         tempexpenses = auth.get_tempexpenses(pages[4])
@@ -128,5 +131,19 @@ def results(request, **kwargs):
             response = redirect(f'/landing/groups/{auth.get_group_index(groupcode)}?resolved=Expense resolved!')
             return response
     return render(request, 'results.html', {'surveydata': surveydata})
+
+
+def scanfile(request, **kwargs):
+    if request.method == 'POST':
+        receiptfile = request.FILES['receipt']
+        fs = FileSystemStorage()
+        filename = fs.save(receiptfile.name, receiptfile)
+        receiptfile_url = fs.url(filename)
+        fs_location = fs.location
+        receipt_location = f"{fs_location}\{filename}"
+        scanner = scan.ReceiptScanner()
+        scanner.aspriceScan(receipt_location)
+        
+    return render(request, 'scanfile.html')
     
     
