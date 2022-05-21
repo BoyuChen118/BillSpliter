@@ -6,59 +6,50 @@ from imutils.perspective import four_point_transform
 from BillSplitterApp.backend.data import *
 
 
-
-
-
 class ReceiptScanner():
     # asprice API, extremely accurate but only 10 scans per day
     def aspriceScan(self, imageFile):
-        receiptOcrEndpoint = 'https://ocr.asprise.com/api/v1/receipt' # Receipt OCR API endpoint
-        r = requests.post(receiptOcrEndpoint, data = { \
-        'client_id': 'TEST',        # Use 'TEST' for testing purpose \
-        'recognizer': 'auto',       # can be 'US', 'CA', 'JP', 'SG' or 'auto' \
-        'ref_no': 'ocr_python_123', # optional caller provided ref code \
+        # Receipt OCR API endpoint
+        receiptOcrEndpoint = 'https://ocr.asprise.com/api/v1/receipt'
+        allitems = []  # keeps track of all the items picked up by asprice
+        r = requests.post(receiptOcrEndpoint, data={
+            'client_id': 'TEST',        # Use 'TEST' for testing purpose \
+            'recognizer': 'auto',       # can be 'US', 'CA', 'JP', 'SG' or 'auto' \
+            'ref_no': 'ocr_python_123',  # optional caller provided ref code \
         }, \
-        files = {"file": open(imageFile, "rb")})
+            files={"file": open(imageFile, "rb")})
         print(r.text)
         success = r.json()['success']   # quota not exceeded
+        
         if success:
             receipt = r.json()['receipts'][0]
-            receiptitems = receipt['items'] # result in JSON
+
+            receiptitems = receipt['items']  # result in JSON
             tax = receipt['tax'] if 'tax' in receipt and receipt['tax'] else 0
             service_charge = receipt['service_charge'] if 'service_charge' in receipt and receipt['service_charge'] else 0
             tip = receipt['tip'] if 'tip' in receipt and receipt['tip'] else 0
-            
+
             # turn tax service charge and tip into items  (they are shared evenly by everyone by default)
             tax = item('tax', tax, 1, 0)
             service_charge = item('service_charge', service_charge, 1, 0)
             tip = item('tip', tip, 1, 0)
-            
-            # TO-DO submit the above three items using submit_tempexpenses()
+
             print(f'tax is {tax.price}')
             print(f'service charge is {service_charge.price}')
             print(f'tip is {tip.price}')
             print("=====================")
-            
+            allitems = [tax, service_charge, tip]
+
             for receiptitem in receiptitems:
-                newitem = item(receiptitem['description'], receiptitem['amount'], receiptitem['qty'], 1)
-                # TO-DO set the splitmode and submit the newitem using submit_tempexpenses()
+                newitem = item(
+                    receiptitem['description'], receiptitem['amount'], receiptitem['qty'], 1)
+                allitems.append(newitem)
                 print(f"{newitem.quantity} {newitem.name}:     ${newitem.price}")
         else:
-        # Receipt data extraction pipeline using OCR.space   
+            # Receipt data extraction pipeline using OCR.space
             pass
 
-
-
-
-
-
-
-
-
-
-
-
-
+        return allitems
 
 
 # orig = cv2.imread('receipt5.jpg')

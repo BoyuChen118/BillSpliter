@@ -432,7 +432,7 @@
               {% if pexp.actionrequired == "Pending Survey (click me)" %}
               <td><a href='/survey/{{ pexp.expensename }}/{{pages.4}}' style="color:{{pexp.color}};"><i class="fa fa-clock" aria-hidden="true"></i> {{pexp.actionrequired}}</a></td>
               {% elif pexp.actionrequired == "Waiting For Others" %}
-              <td><a href='/results/{{ pages.4 }}/{{ pexp.expensename }}/incomplete'> <i class="fa fa-hourglass"></i> {{pexp.actionrequired}} (click me)</a></td>
+              <td><a href='/results/{{ pages.4 }}/{{ pexp.expensename }}/incomplete'> <i class="fa fa-hourglass"></i> {{pexp.actionrequired}} (click me to resolve early)</a></td>
               {% elif pexp.actionrequired == "Survey Completed!" %}
               <td><a style="color:{{pexp.color}};"><i class="fa fa-check" aria-hidden="true"></i> {{pexp.actionrequired}}</a></td>
               {% elif pexp.actionrequired == "Everyone Completed Survey (click me)" %}

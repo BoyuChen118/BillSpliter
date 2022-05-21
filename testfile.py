@@ -286,3 +286,227 @@ print(ocr_file('receipt12.png'))
 # cv2.imshow("Original", imutils.resize(orig, height = 650))
 # cv2.imshow("Scanned", imutils.resize(warped, height = 650))
 # cv2.waitKey(0)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# example output from asprice:
+receipt = {
+                "ocr_type": "receipts",
+                "request_id": "P_67.188.231.193_l3f5l3h3_mpj",
+                "ref_no": "ocr_python_123",
+                "file_name": "receipt_ynBFLXo.jpg",
+                "request_received_on": 1653094168023,
+                "success": True,
+                "image_width": 542,
+                "image_height": 722,
+                "image_rotation": 0.010,
+                "recognition_completed_on": 1653094168372,
+                "receipts": [{
+                    "merchant_name": "5/16/22, 9:14 PM",
+                    "merchant_address": None,
+                    "merchant_phone": None,
+                    "merchant_website": None,
+                    "merchant_tax_reg_no": None,
+                    "merchant_company_reg_no": None,
+                    "region": None,
+                    "mall": None,
+                    "country": "US",
+                    "receipt_no": "N13",
+                    "date": "2022-05-16",
+                    "time": "21:14",
+                    "items": [{
+                        "amount": 17.95,
+                        "description": "1 Bullwinkle Burger",
+                        "flags": "",
+                        "qty": None,
+                        "remarks": None,
+                        "unitPrice": None
+                    }, {
+                        "amount": 16.95,
+                        "description": "1 Adirondack Dip",
+                        "flags": "",
+                        "qty": None,
+                        "remarks": None,
+                        "unitPrice": None
+                    }, {
+                        "amount": 16.95,
+                        "description": "1 Adirondack Dip",
+                        "flags": "",
+                        "qty": None,
+                        "remarks": None,
+                        "unitPrice": None
+                    }, {
+                        "amount": 15.95,
+                        "description": "Honey BBQ Chicken Sandwich",
+                        "flags": "",
+                        "qty": 1,
+                        "remarks": None,
+                        "unitPrice": None
+                    }, {
+                        "amount": 11.95,
+                        "description": "Bacon Gravy Cheese Fries",
+                        "flags": "",
+                        "qty": 1,
+                        "remarks": None,
+                        "unitPrice": None
+                    }, {
+                        "amount": 7.00,
+                        "description": "Nine Pin",
+                        "flags": "",
+                        "qty": 1,
+                        "remarks": None,
+                        "unitPrice": None
+                    }, {
+                        "amount": 15.95,
+                        "description": "Moose Knuckle",
+                        "flags": "",
+                        "qty": 1,
+                        "remarks": None,
+                        "unitPrice": None
+                    }, {
+                        "amount": 9.95,
+                        "description": "Beer Battered Cheese Curds",
+                        "flags": "",
+                        "qty": 1,
+                        "remarks": None,
+                        "unitPrice": None
+                    }, {
+                        "amount": 18.95,
+                        "description": "Sweet Maple Fries",
+                        "flags": "",
+                        "qty": 1,
+                        "remarks": None,
+                        "unitPrice": None
+                    }, {
+                        "amount": 13.95,
+                        "description": "Pulled Pork Nachos",
+                        "flags": "",
+                        "qty": 1,
+                        "remarks": None,
+                        "unitPrice": None
+                    }],
+                    "currency": "USD",
+                    "total": 178.69,
+                    "subtotal": 165.45,
+                    "tax": 13.24,
+                    "service_charge": None,
+                    "tip": None,
+                    "payment_method": None,
+                    "payment_details": None,
+                    "credit_card_type": None,
+                    "credit_card_number": None,
+                    "ocr_text": "                      TIPSY MOOSE\n                       THP & TAVER\n                                    Ticket: N13\n         5/16/22, 9:14 PM\n         Server: Host S\n         Dining Table 68\n         Invoice: 220516-06-13\n                                                  N13\n         1 Pulled Pork & Cheese Curd Fries\n        11.95\n                                          15.95 UI\n         1 Bullwinkle Burger\n                                          17.95\n         1 Adirondack Dip\n                                          16.95\n         1 Adirondack Dip\n                                          16.95\n         1 Mac Flight\n         1 Honey BBQ Chicken Sandwich     15.95\n        1 Bacon Gravy Cheese Fries        11.95\n        1 Nine Pin                          7.00\n        1 Moose Knuckle                   15.95\n        1 Beer Battered Cheese Curds        9.95\n        1 Sweet Maple Fries                18.95\n        1 Pulled Pork Nachos               13.95\n      Subtotal                            165.45\n      Tax                                  13.24\n      Total                               178.69\n                ORDER ONLINE!\n       WWW.TIPSYMOOSETAVERN.COM\n           PRE-ORDERS ACCEPTED!\n                    2021 Mobile Bytes, LLC\n bom",
+                    "ocr_confidence": 94.83,
+                    "width": 348,
+                    "height": 579,
+                    "avg_char_width": None,
+                    "avg_line_height": None,
+                    "source_locations": {
+                        "date": [[{
+                            "x": 106,
+                            "y": 214
+                        }, {
+                            "x": 216,
+                            "y": 214
+                        }, {
+                            "x": 216,
+                            "y": 223
+                        }, {
+                            "x": 106,
+                            "y": 224
+                        }]],
+                        "total": [[{
+                            "x": 321,
+                            "y": 506
+                        }, {
+                            "x": 371,
+                            "y": 506
+                        }, {
+                            "x": 371,
+                            "y": 516
+                        }, {
+                            "x": 321,
+                            "y": 516
+                        }]],
+                        "receipt_no": [[{
+                            "x": 339,
+                            "y": 207
+                        }, {
+                            "x": 361,
+                            "y": 206
+                        }, {
+                            "x": 362,
+                            "y": 218
+                        }, {
+                            "x": 340,
+                            "y": 219
+                        }]],
+                        "subtotal": [[{
+                            "x": 321,
+                            "y": 463
+                        }, {
+                            "x": 369,
+                            "y": 463
+                        }, {
+                            "x": 369,
+                            "y": 473
+                        }, {
+                            "x": 321,
+                            "y": 473
+                        }]],
+                        "doc": [[{
+                            "x": 34,
+                            "y": 118
+                        }, {
+                            "x": 417,
+                            "y": 122
+                        }, {
+                            "x": 411,
+                            "y": 759
+                        }, {
+                            "x": 28,
+                            "y": 755
+                        }]],
+                        "merchant_name": [[{
+                            "x": 100,
+                            "y": 214
+                        }, {
+                            "x": 221,
+                            "y": 214
+                        }, {
+                            "x": 221,
+                            "y": 224
+                        }, {
+                            "x": 100,
+                            "y": 224
+                        }]],
+                        "tax": [[{
+                            "x": 329,
+                            "y": 476
+                        }, {
+                            "x": 370,
+                            "y": 477
+                        }, {
+                            "x": 370,
+                            "y": 489
+                        }, {
+                            "x": 329,
+                            "y": 488
+                        }]]
+                    }
+                }]
+            }

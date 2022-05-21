@@ -101,7 +101,7 @@ def landing(request, **kwargs):
                 elif request.POST.get('submitexpense'):
                     errormsg = auth.pend_expense(pages[4], expensename)
                 elif request.POST.get('submitscan'):
-                    return redirect('/scanfile')
+                    return redirect(f'/scanfile/{pages[4]}')
         pendexpenses = backendservice.Util().process_pendingexpenses(
             pages[4], groupinfo, auth)
         tempexpenses = auth.get_tempexpenses(pages[4])
@@ -134,6 +134,7 @@ def results(request, **kwargs):
 
 
 def scanfile(request, **kwargs):
+    groupcode = kwargs.get('groupcode')
     if request.method == 'POST':
         receiptfile = request.FILES['receipt']
         fs = FileSystemStorage()
@@ -142,7 +143,8 @@ def scanfile(request, **kwargs):
         fs_location = fs.location
         receipt_location = f"{fs_location}\{filename}"
         scanner = scan.ReceiptScanner()
-        scanner.aspriceScan(receipt_location)
+        allitems = scanner.aspriceScan(receipt_location)
+        auth.submit_scanneditems(groupcode, allitems)
         
     return render(request, 'scanfile.html')
     

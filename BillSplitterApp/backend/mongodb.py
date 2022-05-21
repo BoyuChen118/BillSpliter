@@ -109,13 +109,13 @@ class Authenticator:
             text = ''
             if useremail in oweuser:  # some other user owes the logged in user
                 amountowe = oweuser[useremail]
-                if int(amountowe) != 0:
-                    text = f'Owes you ${amountowe}'
+                if float(amountowe) != 0:
+                    text = f'Owes you ${amountowe:.2f}'
                     textcolor = 'green'
             elif email in owes:  # logged in user owes some other user
                 amountowe = owes[email]
-                if int(amountowe) != 0:
-                    text = f'You owe this user ${amountowe}'
+                if float(amountowe) != 0:
+                    text = f'You owe this user ${amountowe:.2f}'
                     textcolor = 'red'
             groupinfo[i].append(text)
             groupinfo[i].append(textcolor)
@@ -178,6 +178,36 @@ class Authenticator:
                 'users').find_one_and_update({'_id': self.email}, {'$push': {f"tempexpenses.{groupcode}": item}})
         except Exception:
             return 'Item price must be a positive number'
+    
+    # handle submitting list of data (scanned from receipt)
+    def submit_scanneditems(self, groupcode: str, items: list):
+        check_duplicate = set() # check duplicate itemname with a set
+        for item in items:
+            try:
+                float(item.price)
+            except Exception:
+                item.price = "1.0"
+            
+            try:
+                int(item.quantity)
+            except Exception:
+                item.quantity = 1
+            
+            try:
+                existingitems = self.db.storage.get_collection(
+                    'users').find_one({'_id': self.email})["tempexpenses"][groupcode]
+            except Exception:
+                existingitems = []
+            # check for duplicate item name
+            if item.name in check_duplicate:
+                item.name = item.name + '_2'
+            check_duplicate.add(item.name)
+        items = [item.toJson() for item in items]
+                
+        self.db.storage.get_collection(
+            'users').find_one_and_update({'_id': self.email}, {'$push': {f"tempexpenses.{groupcode}": {'$each': items}}})
+            
+            
 
     # handle user making change to temp expense
     def update_tempexpenses(self, groupcode: str, newitem: dict, itemindex: str):
@@ -324,8 +354,9 @@ class Authenticator:
                         email = Util().decodeEmail(email)
                         tempsheet[email] = surveyitems['items'][itemname]
                         totalshares += surveyitems['items'][itemname]
-                totalshares = 1 if not totalshares else totalshares  # avoid divide by 0 error
-                pricepershare = (totalprice / totalshares) if totalshares > int(item['itemquantity']) else float(item['itemprice'])  # only use "share" price when it's a share item otherwise just use itemprice
+                pricepershare = 0  
+                if totalshares != 0: # avoid divide by 0 error
+                    pricepershare = (totalprice / totalshares) if totalshares > int(item['itemquantity']) else float(item['itemprice'])  # only use "share" price when it's a share item otherwise just use itemprice
                 for email, shares in tempsheet.items():
                     if email not in expensesheet:
                         expensesheet[email] = 0
