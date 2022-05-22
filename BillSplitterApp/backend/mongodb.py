@@ -199,7 +199,7 @@ class Authenticator:
             except Exception:
                 existingitems = []
             # check for duplicate item name
-            if item.name in check_duplicate:
+            if item.name in [i['itemname'] for i in existingitems] or item.name in check_duplicate:
                 item.name = item.name + '_2'
             check_duplicate.add(item.name)
         items = [item.toJson() for item in items]

@@ -145,6 +145,7 @@ def scanfile(request, **kwargs):
         scanner = scan.ReceiptScanner()
         allitems = scanner.aspriceScan(receipt_location)
         auth.submit_scanneditems(groupcode, allitems)
+        return redirect(f'/landing/groups/{auth.get_group_index(groupcode)}')
         
     return render(request, 'scanfile.html')
     
