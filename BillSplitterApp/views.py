@@ -84,7 +84,7 @@ def landing(request, **kwargs):
             if deleteIndex != -1:
                 auth.delete_tempexpense(pages[4], deleteIndex)
             # handle user submit item to temp expense and submitting temp expense as a whole
-            elif request.POST.get('submititem') or request.POST.get('submitexpense') or request.POST.get('submitscan'):
+            else:
                 # update temporary expense
                 index = 0
                 while index < auth.get_tempexpense_length(pages[4]):
@@ -102,6 +102,14 @@ def landing(request, **kwargs):
                     errormsg = auth.pend_expense(pages[4], expensename)
                 elif request.POST.get('submitscan'):
                     return redirect(f'/scanfile/{pages[4]}')
+                
+                # delete all temp expenses when user clicks cancel
+                elif request.POST.get('deletetempexpenses'):
+                    print("deleting...")
+                    auth.get_tempexpense_length(pages[4])
+                    for i in range(auth.get_tempexpense_length(pages[4])):
+                        auth.delete_tempexpense(pages[4], 0)
+                    print(auth.get_tempexpense_length(pages[4]))
         pendexpenses = backendservice.Util().process_pendingexpenses(
             pages[4], groupinfo, auth)
         tempexpenses = auth.get_tempexpenses(pages[4])
