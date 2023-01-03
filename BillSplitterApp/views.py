@@ -1,14 +1,20 @@
+from importlib.resources import path
+from tempfile import NamedTemporaryFile
+from PIL import Image
+import PIL
 from django.shortcuts import redirect, render
 from django.http import HttpResponse
 from urllib3 import HTTPResponse
 from django.core.files.storage import FileSystemStorage
+import urllib
 import BillSplitterApp.backend.mongodb as backendservice
-import BillSplitterApp.backend.scanner as scan
+from BillSplitterApp.backend.scanner import ReceiptScanner
 import BillSplitterApp.backend.data as datastructs
 import datetime
 
-# initialize auth
+# initialize auth and scanner
 auth = backendservice.Authenticator()
+scanner = ReceiptScanner()
 
 
 def current_datetime(request):
@@ -144,15 +150,11 @@ def results(request, **kwargs):
 def scanfile(request, **kwargs):
     groupcode = kwargs.get('groupcode')
     if request.method == 'POST':
-        receiptfile = request.FILES['receipt']
-        fs = FileSystemStorage()
-        filename = fs.save(receiptfile.name, receiptfile)
-        receiptfile_url = fs.url(filename)
-        fs_location = fs.location
-        receipt_location = f"{fs_location}\{filename}"
-        scanner = scan.ReceiptScanner()
-        allitems = scanner.aspriceScan(receipt_location)
-        auth.submit_scanneditems(groupcode, allitems)
+        img_string = request.POST['photo']
+        urllib.request.urlretrieve(img_string, "photo.png")
+        scanner.aspriceScan("photo.png")
+        # PIL.Image.open("photo.png").show()
+        
         return redirect(f'/landing/groups/{auth.get_group_index(groupcode)}')
         
     return render(request, 'scanfile.html')
