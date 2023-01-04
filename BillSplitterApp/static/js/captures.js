@@ -37,6 +37,7 @@
           video.setAttribute('height', height);
           canvas.setAttribute('width', width);
           canvas.setAttribute('height', height);
+          drawcanvas();
           streaming = true;
         }
       }, false);
@@ -45,8 +46,7 @@
         takepicture();
         ev.preventDefault();
       }, false);
-  
-      clearphoto();
+
     }
     
     function clearphoto() {
@@ -56,6 +56,29 @@
   
       var data = canvas.toDataURL('image/png');
       photo.setAttribute('value', data);
+    }
+
+    function drawcanvas() {
+      var context = canvas.getContext('2d');
+      var centerX = canvas.width / 2;
+      var centerY = canvas.height / 2;
+      
+      // Draw border of canvas
+      context.lineWidth = "3";
+      context.strokeStyle = "black";
+      context.rect(0, 0, canvas.width, canvas.height);
+      context.stroke();
+
+      // Load in text
+      context.textAlign = "center";
+      context.font = "15px Arial";
+      context.fillText("Screen capture will appear in this box", centerX, centerY);
+    }
+
+    function rotate90degrees() {
+      var context = canvas.getContext('2d');
+      context.translate(canvas.width, 0);
+      context.rotate(Math.PI / 2);
     }
   
     function takepicture() {

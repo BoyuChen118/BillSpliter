@@ -152,7 +152,8 @@ def scanfile(request, **kwargs):
     if request.method == 'POST':
         img_string = request.POST['photo']
         urllib.request.urlretrieve(img_string, "photo.png")
-        scanner.aspriceScan("photo.png")
+        allitems = scanner.aspriceScan("photo.png")
+        auth.submit_scanneditems(groupcode, allitems)
         # PIL.Image.open("photo.png").show()
         
         return redirect(f'/landing/groups/{auth.get_group_index(groupcode)}')
