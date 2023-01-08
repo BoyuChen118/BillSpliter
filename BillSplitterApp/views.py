@@ -1,7 +1,3 @@
-from importlib.resources import path
-from tempfile import NamedTemporaryFile
-from PIL import Image
-import PIL
 from django.shortcuts import redirect, render
 from django.http import HttpResponse
 from urllib3 import HTTPResponse
