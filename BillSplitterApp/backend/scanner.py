@@ -1,8 +1,4 @@
-import cv2
-import imutils
 import requests
-from skimage.filters import threshold_local
-from imutils.perspective import four_point_transform
 from BillSplitterApp.backend.data import *
 
 
