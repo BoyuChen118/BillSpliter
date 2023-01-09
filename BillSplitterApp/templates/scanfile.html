@@ -2,7 +2,7 @@
 <html>
   <head>
     {% load static %}
-    <script src="{% static 'js/captures.js'%}"></script>
+    <script src="https://boyuchen118.pythonanywhere.com/static/js/captures.js"></script>
     <!-- Bootstrap CSS CDN -->
     <link
       rel="stylesheet"
@@ -36,10 +36,10 @@
     </script>
   </head>
   <body style="background-color: #343a40">
-         
+
     <div class="container-fluid">
       <div class="row">
-       <div class="col-md-8">  
+       <div class="col-md-8">
           <div id="accordion" role="tablist">
 
               <form method="post" action="" enctype="multipart/form-data" id="photoform">
@@ -48,22 +48,22 @@
                  <div class="card-body">
                    <div class="row">
                      <div class="col-md-4 ml-auto mr-auto">
-                        <div class="form-group">                                
-                           <video id="video" autoplay ></video>                               
-                           <canvas id="canvas"></canvas>                                
+                        <div class="form-group">
+                           <video id="video" autoplay ></video>
+                           <canvas id="canvas"></canvas>
                      </div>
                           </div>
 
-                      <div class="img  pull-center" >                                            
-                      <input id ="photo" name="photo" alt="The screen capture will appear in this box." value="" type="hidden">    
-                      <input type="submit">               
+                      <div class="img  pull-center" >
+                      <input id ="photo" name="photo" alt="The screen capture will appear in this box." value="" type="hidden">
+                      <input type="submit">
             </form>
             <button id="startbutton1" type="submit" form="photoform" class="btn btn-outline-secondary btn-sm" value= "Submit">Take Photo</button>
-            <script src="{% static "assets/js/capture.js" %}"></script> 
-        </div>                
-      </div>  
+        </div>
+      </div>
    </div>
 </div>
 
   </body>
+
 </html>

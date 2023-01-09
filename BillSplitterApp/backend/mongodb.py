@@ -15,7 +15,7 @@ class database:
         self.storage = None
 
     def connect_db(self):
-        client = pymongo.MongoClient(mongo_secret)
+        client = pymongo.MongoClient(mongo_secret,connectTimeoutMS=30000, socketTimeoutMS=None, connect=False, maxPoolsize=1)
         self.storage = client['BillSplitter']
 
     def insert_data(self, collectionName, data):
@@ -69,7 +69,7 @@ class Authenticator:
     # retrieve groups[groupindex]
     def get_group_code(self, groupindex: int):
         return self.db.storage.get_collection('users').find_one({'_id': self.email})['groups'][groupindex]
-    
+
     # get groupindex based on groupcode
     def get_group_index(self, groupcode: str):
         groups = self.db.storage.get_collection(
@@ -87,7 +87,7 @@ class Authenticator:
             memberinfo.append([self.db.storage.get_collection(
                 'users').find_one({'_id': memberemail})['nickname'], memberemail])
         return memberinfo
-    
+
     # turn array of [membername, memberemail] to [membername, memberemail, displaytext, displaytextcolor]
     def attach_amount_owe(self, groupinfo):
         try:
@@ -96,12 +96,12 @@ class Authenticator:
             owes = []
         for i in range(len(groupinfo)):
             memberinfo = groupinfo[i]
-            
+
             try:
                 oweuser = self.db.storage.get_collection('users').find_one({'_id': memberinfo[1]})['owes']
             except Exception:
                 oweuser = []
-                
+
             email = Util().encodeEmail(memberinfo[1])
             useremail = Util().encodeEmail(self.email)
             amountowe = 0
@@ -120,8 +120,8 @@ class Authenticator:
             groupinfo[i].append(text)
             groupinfo[i].append(textcolor)
         return
-                
-            
+
+
 
     # get the display name of the user
 
@@ -152,7 +152,7 @@ class Authenticator:
             # add member to group members field
             self.db.storage.get_collection(
                 'groups').find_one_and_update({'_id': groupcode}, {'$push': {"members": self.email}})
-            
+
     # retrieve temporary expenses for the user for group with groupcode
     def get_tempexpenses(self, groupcode: str):
         try:
@@ -178,7 +178,7 @@ class Authenticator:
                 'users').find_one_and_update({'_id': self.email}, {'$push': {f"tempexpenses.{groupcode}": item}})
         except Exception:
             return 'Item price must be a positive number'
-    
+
     # handle submitting list of data (scanned from receipt)
     def submit_scanneditems(self, groupcode: str, items: list):
         check_duplicate = set() # check duplicate itemname with a set
@@ -187,12 +187,12 @@ class Authenticator:
                 float(item.price)
             except Exception:
                 item.price = "1.0"
-            
+
             try:
                 int(item.quantity)
             except Exception:
                 item.quantity = 1
-            
+
             try:
                 existingitems = self.db.storage.get_collection(
                     'users').find_one({'_id': self.email})["tempexpenses"][groupcode]
@@ -203,11 +203,11 @@ class Authenticator:
                 item.name = item.name + '_2'
             check_duplicate.add(item.name)
         items = [item.toJson() for item in items]
-                
+
         self.db.storage.get_collection(
             'users').find_one_and_update({'_id': self.email}, {'$push': {f"tempexpenses.{groupcode}": {'$each': items}}})
-            
-            
+
+
 
     # handle user making change to temp expense
     def update_tempexpenses(self, groupcode: str, newitem: dict, itemindex: str):
@@ -256,7 +256,7 @@ class Authenticator:
             return ret
         except Exception:
             return []
-    
+
     # submit survey to group[groupcode] and check if all groupmembers have submitted data (if true then delete from pending expenses and add to ledger)
     # example surveydata: {'selected0': [''], 'quantityselect0': ['1']}
     def submit_survey(self, expensename, groupcode, surveydata: dict):
@@ -268,8 +268,8 @@ class Authenticator:
         for k,v in surveydata.items():
             if re.fullmatch(selectedregex, k):
                 itemindexes.append(int(k[8:]))
-                
-        pexpenseIndex = None    
+
+        pexpenseIndex = None
         for index, expenses in enumerate(pendingexpenses):
             if expenses['expensename'] == expensename:
                 pexpenseIndex = index
@@ -280,8 +280,8 @@ class Authenticator:
                     survey['items'][itemChose['itemname']] = quantityChose
                 self.db.storage.get_collection(
             'groups').find_one_and_update({'_id': groupcode}, {'$set': {f"pendingexpenses.{index}.surveys.{Util().encodeEmail(self.email)}": survey}})
-                
-        
+
+
         surveyLength = len(self.db.storage.get_collection(
             'groups').find_one({'_id': groupcode})['pendingexpenses'][pexpenseIndex]['surveys'])
         # check if everyone including payor submitted the survey
@@ -289,13 +289,13 @@ class Authenticator:
             # update status of survey to archivable
             self.db.storage.get_collection(
             'groups').find_one_and_update({'_id': groupcode}, {'$set': {f'pendingexpenses.{pexpenseIndex}.actionrequired': 'Everyone Completed Survey (click me)'}})
-            
-            
+
+
         # generate transaction report based on all surveys
         expensesheet = self.calculate_expenses(self.get_pending_expenses(groupcode)[pexpenseIndex])
         self.db.storage.get_collection(
         'groups').find_one_and_update({'_id': groupcode}, {'$set': {f'pendingexpenses.{pexpenseIndex}.expensesheet': expensesheet}})
-                
+
     # check if current user has finished the survey for expense[expenseIndex]
     def check_finished_survey(self, groupcode, expenseIndex: int):
         pexpense = self.get_pending_expenses(groupcode)[expenseIndex]
@@ -324,7 +324,7 @@ class Authenticator:
                         surveydata = [[], 0, email]
                     surveydata[username][1] = amount
         return surveydata
-                
+
 
     # calcualte how much each member owe payor
     def calculate_expenses(self, pexpense: dict):
@@ -336,7 +336,7 @@ class Authenticator:
         #
         # Uneven split
         # "Share" price is calculated differently depending on if the item is deemed a shared item or
-        # non share item.  non share item price is simply just item price while shared item price is 
+        # non share item.  non share item price is simply just item price while shared item price is
         # calculated with a more complicated algorithm
         #
         # Even split
@@ -354,7 +354,7 @@ class Authenticator:
                         email = Util().decodeEmail(email)
                         tempsheet[email] = surveyitems['items'][itemname]
                         totalshares += surveyitems['items'][itemname]
-                pricepershare = 0  
+                pricepershare = 0
                 if totalshares != 0: # avoid divide by 0 error
                     pricepershare = (totalprice / totalshares) if totalshares > int(item['itemquantity']) else float(item['itemprice'])  # only use "share" price when it's a share item otherwise just use itemprice
                 for email, shares in tempsheet.items():
@@ -368,10 +368,10 @@ class Authenticator:
                     if email not in expensesheet:
                         expensesheet[email] = 0
                     expensesheet[email] += totalprice / membercount
-                    
-                
+
+
         return expensesheet
-    
+
     # triggered when payer wants to resolve the expense, the algorithm recalculates how much each person owe payer taken into account the new expense
     def resolve_expense(self, surveydata, groupcode, expensename):
         # survedata format: {username: [[itemname*quantity], amount_owe_to_payer, email]}
@@ -398,13 +398,13 @@ class Authenticator:
                         originalamount = debter['owes'][Util().encodeEmail(payeremail)]
                     print(f"original amount is {originalamount}")
                     self.db.storage.get_collection('users').find_one_and_update({'_id': debteremail}, {'$set': {f'owes.{Util().encodeEmail(payeremail)}': originalamount+amount}})
-        
+
         # delete pending expense
         self.db.storage.get_collection(
             'groups').find_one_and_update({'_id': groupcode}, {'$pull': {f"pendingexpenses": {"expensename": expensename}}})
-        
-        
-        
+
+
+
 
 
 class PageGenerator:
@@ -453,12 +453,12 @@ class Util:
                     p['actionrequired'] = 'Survey Completed!'
                     p['color'] = 'green'
                     continue
-                
+
             # pexenpse if owned by current logged in user
             if 'Everyone' in p['actionrequired']:
                 p['color'] = 'lightblue'
-                
-                    
+
+
         return pendingexpenses
 
     # encode email to replace '.' with '@' in order to avoid problem with mongodb
@@ -477,9 +477,9 @@ class Util:
         for index in allindexes:
             email[index] = '.'
         return "".join(email)
-    
+
     # retrieve items from pending expense with name but splitmode isn't 0
-    def get_items(self, expenses, name):  
+    def get_items(self, expenses, name):
         finalitems = []
         for expense in expenses:
             if expense['expensename'] == name:
