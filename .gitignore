@@ -3,5 +3,5 @@ BillSplitter/strings.py
 
 # all pycaches
 BillSplitter/__pycache__/*
-BillSplitterApp/ __pycache__/*
+BillSplitterApp/__pycache__/*
 BillSplitterApp/backend/__pycache__/*
