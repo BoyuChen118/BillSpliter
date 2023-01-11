@@ -10,95 +10,64 @@ import BillSplitterApp.backend.data as datastructs
 # all backend stuffs handled here
 
 
-class database:
-    def __init__(self) -> None:
+# database singleton
+class Database:
+    def __init__(self, email) -> None:
         self.storage = None
-
-    def connect_db(self):
         client = pymongo.MongoClient(mongo_secret,connectTimeoutMS=30000, socketTimeoutMS=None, connect=False, maxPoolsize=1)
         self.storage = client['BillSplitter']
+        self.email = email
+        
 
     def insert_data(self, collectionName, data):
         self.storage.get_collection(collectionName).insert_one(data)
-
-
-class Authenticator:
-    def __init__(self) -> None:
-        self.db = database()
-        self.db.connect_db()
-        self.email = None
-
-    def sign_up(self, email, p, confirmp, nickname):
-        try:
-            emailregex = re.compile(
-                r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
-            if not re.fullmatch(emailregex, email):
-                return (False, 'Invalid email')
-            elif p != confirmp:
-                return (False, 'Confirm passwords doesn\'t match')
-            elif len(nickname) == 0:
-                return (False, 'Name can\'t be empty')
-            self.db.insert_data(
-                'users', {'_id': email, 'password': p, 'nickname': nickname, 'groups': [], 'tempexpenses': {}})  # temp expenses can potentially become official expense once user submit
-            self.email = email
-            return (True, None)
-        except Exception:
-            return (False, 'Account with this email already exists')
-
-    def login(self, email, p):
-        doc = self.db.storage.get_collection(
-            'users').find_one({'_id': email, 'password': p})
-        if not doc or len(doc) == 0:
-            return False
-        self.email = email
-        return True
-
-    # get groups the user belongs to in the form of array of groupcodes
+             
+        # get groups the user belongs to in the form of array of groupcodes
     def get_groups(self):
         ret = []
-        groupcodes = self.db.storage.get_collection(
+        groupcodes = self.storage.get_collection(
             'users').find_one({'_id': self.email})['groups']
         for groupcode in groupcodes:
-            ret.append(self.db.storage.get_collection(
+            ret.append(self.storage.get_collection(
                 'groups').find_one({'_id': groupcode})['name'])
         return ret
-
+    
     def get_group_count(self):
         return len(self.get_groups)
 
     # retrieve groups[groupindex]
     def get_group_code(self, groupindex: int):
-        return self.db.storage.get_collection('users').find_one({'_id': self.email})['groups'][groupindex]
+        return self.storage.get_collection('users').find_one({'_id': self.email})['groups'][groupindex]
 
     # get groupindex based on groupcode
     def get_group_index(self, groupcode: str):
-        groups = self.db.storage.get_collection(
+        groups = self.storage.get_collection(
             'users').find_one({'_id': self.email})['groups']
         for i, group in enumerate(groups):
             if groupcode == group:
                 return i
-
-    # retrieve all member names and emails of groups[groupindex]
+            
+        # retrieve all member names and emails of groups[groupindex]
     def get_group_members(self, groupcode: str):
-        memberemails = self.db.storage.get_collection(
+        memberemails = self.storage.get_collection(
             'groups').find_one({'_id': groupcode})['members']
         memberinfo = []  # in the form of [membername, memberemail]
         for memberemail in memberemails:
-            memberinfo.append([self.db.storage.get_collection(
+            memberinfo.append([self.storage.get_collection(
                 'users').find_one({'_id': memberemail})['nickname'], memberemail])
         return memberinfo
 
     # turn array of [membername, memberemail] to [membername, memberemail, displaytext, displaytextcolor]
     def attach_amount_owe(self, groupinfo):
         try:
-            owes = self.db.storage.get_collection('users').find_one({'_id': self.email})['owes']
+            owes = self.storage.get_collection('users').find_one({'_id': self.email})['owes']
         except Exception:
             owes = []
         for i in range(len(groupinfo)):
             memberinfo = groupinfo[i]
 
             try:
-                oweuser = self.db.storage.get_collection('users').find_one({'_id': memberinfo[1]})['owes']
+                oweuser = self.storage.get_collection('users').find_one({'_id': memberinfo[1]})['owes']
             except Exception:
                 oweuser = []
 
@@ -126,7 +95,7 @@ class Authenticator:
     # get the display name of the user
 
     def get_name(self):
-        doc = self.db.storage.get_collection(
+        doc = self.storage.get_collection(
             'users').find_one({'_id': self.email})
         return doc['nickname']
 
@@ -140,23 +109,23 @@ class Authenticator:
         self.join_group(randomcode)
 
     def join_group(self, groupcode):
-        useradded = self.db.storage.get_collection('users').find_one(
+        useradded = self.storage.get_collection('users').find_one(
             {'_id': self.email, "groups": {'$in': [groupcode]}})
-        groupadded = self.db.storage.get_collection('groups').find_one(
+        groupadded = self.storage.get_collection('groups').find_one(
             {'_id': groupcode, "members": {'$in': [self.email]}})
         if useradded or groupadded:
             return "You're already part of this group"
         else:
-            self.db.storage.get_collection(  # add new group code to groups
+            self.storage.get_collection(  # add new group code to groups
                 'users').find_one_and_update({'_id': self.email}, {'$push': {"groups": groupcode}})
             # add member to group members field
-            self.db.storage.get_collection(
+            self.storage.get_collection(
                 'groups').find_one_and_update({'_id': groupcode}, {'$push': {"members": self.email}})
 
     # retrieve temporary expenses for the user for group with groupcode
     def get_tempexpenses(self, groupcode: str):
         try:
-            return self.db.storage.get_collection('users').find_one(
+            return self.storage.get_collection('users').find_one(
                 {'_id': self.email})['tempexpenses'][groupcode]
         except Exception:
             return {}
@@ -164,17 +133,17 @@ class Authenticator:
     # handle when user submit an item
     def submit_tempexpenses(self, groupcode: str, item: dict):
         if len(self.get_tempexpenses(groupcode)) == 0:  # temp expenses has been submitted before
-            self.db.storage.get_collection(
+            self.storage.get_collection(
                 'users').find_one_and_update({'_id': self.email}, {'$set': {f"tempexpenses.{groupcode}":
                                                                             []
                                                                             }})
         try:
             float(item['itemprice'])
-            items = self.db.storage.get_collection(
+            items = self.storage.get_collection(
                 'users').find_one({'_id': self.email})["tempexpenses"][groupcode]
             if item['itemname'] in [i['itemname'] for i in items]:
                 return 'There\'s already an item of the same name'
-            self.db.storage.get_collection(
+            self.storage.get_collection(
                 'users').find_one_and_update({'_id': self.email}, {'$push': {f"tempexpenses.{groupcode}": item}})
         except Exception:
             return 'Item price must be a positive number'
@@ -194,7 +163,7 @@ class Authenticator:
                 item.quantity = 1
 
             try:
-                existingitems = self.db.storage.get_collection(
+                existingitems = self.storage.get_collection(
                     'users').find_one({'_id': self.email})["tempexpenses"][groupcode]
             except Exception:
                 existingitems = []
@@ -204,7 +173,7 @@ class Authenticator:
             check_duplicate.add(item.name)
         items = [item.toJson() for item in items]
 
-        self.db.storage.get_collection(
+        self.storage.get_collection(
             'users').find_one_and_update({'_id': self.email}, {'$push': {f"tempexpenses.{groupcode}": {'$each': items}}})
 
 
@@ -213,7 +182,7 @@ class Authenticator:
     def update_tempexpenses(self, groupcode: str, newitem: dict, itemindex: str):
         itemindex = int(itemindex)
         newitem['itemprice'] = newitem['itemprice'].strip('$')
-        self.db.storage.get_collection(
+        self.storage.get_collection(
             'users').find_one_and_update({'_id': self.email}, {'$set': {f"tempexpenses.{groupcode}.{itemindex}":
                                                                         newitem
                                                                         }})
@@ -221,14 +190,14 @@ class Authenticator:
     # handle user deleting item
     def delete_tempexpense(self, groupcode: str, itemindex: str):
         itemindex = int(itemindex)
-        self.db.storage.get_collection('users').find_one_and_update(
+        self.storage.get_collection('users').find_one_and_update(
             {'_id': self.email}, {'$unset': {f"tempexpenses.{groupcode}.{itemindex}": 1}})
-        self.db.storage.get_collection('users').find_one_and_update(
+        self.storage.get_collection('users').find_one_and_update(
             {'_id': self.email}, {'$pull': {f"tempexpenses.{groupcode}": None}})
 
     def get_tempexpense_length(self, groupcode: str):
         try:
-            expenses = self.db.storage.get_collection('users').find_one(
+            expenses = self.storage.get_collection('users').find_one(
                 {'_id': self.email})['tempexpenses'][groupcode]
         except Exception:
             return 0
@@ -245,13 +214,13 @@ class Authenticator:
             return 'Expenses form can\'t be empty'
         elif len(expensename) == 0:
             return 'Expense name can\'t empty'
-        self.db.storage.get_collection(
+        self.storage.get_collection(
             'groups').find_one_and_update({'_id': groupcode}, {'$push': {f"pendingexpenses": datastructs.PendingExpense(
                 expensename, self.email, expenses).toJson()}})
 
     def get_pending_expenses(self, groupcode: str):
         try:
-            ret = self.db.storage.get_collection(
+            ret = self.storage.get_collection(
                 'groups').find_one({'_id': groupcode})['pendingexpenses']
             return ret
         except Exception:
@@ -278,22 +247,22 @@ class Authenticator:
                     quantityChose = int(surveydata[f'quantityselect{itemindex}'])
                     survey['oweTotal'] += float(itemChose['itemprice']) * quantityChose
                     survey['items'][itemChose['itemname']] = quantityChose
-                self.db.storage.get_collection(
+                self.storage.get_collection(
             'groups').find_one_and_update({'_id': groupcode}, {'$set': {f"pendingexpenses.{index}.surveys.{Util().encodeEmail(self.email)}": survey}})
 
 
-        surveyLength = len(self.db.storage.get_collection(
+        surveyLength = len(self.storage.get_collection(
             'groups').find_one({'_id': groupcode})['pendingexpenses'][pexpenseIndex]['surveys'])
         # check if everyone including payor submitted the survey
         if surveyLength == len(self.get_group_members(groupcode)):
             # update status of survey to archivable
-            self.db.storage.get_collection(
+            self.storage.get_collection(
             'groups').find_one_and_update({'_id': groupcode}, {'$set': {f'pendingexpenses.{pexpenseIndex}.actionrequired': 'Everyone Completed Survey (click me)'}})
 
 
         # generate transaction report based on all surveys
         expensesheet = self.calculate_expenses(self.get_pending_expenses(groupcode)[pexpenseIndex])
-        self.db.storage.get_collection(
+        self.storage.get_collection(
         'groups').find_one_and_update({'_id': groupcode}, {'$set': {f'pendingexpenses.{pexpenseIndex}.expensesheet': expensesheet}})
 
     # check if current user has finished the survey for expense[expenseIndex]
@@ -380,28 +349,58 @@ class Authenticator:
         # 3. delete the pending expense and add to ledger
         data = {v[2]:v[1] for v in surveydata.values()}
         payeremail = self.email
-        payer = self.db.storage.get_collection('users').find_one({'_id':payeremail})
+        payer = self.storage.get_collection('users').find_one({'_id':payeremail})
         for debteremail, amount in data.items():
             if debteremail != payeremail:
                 # check if payer owes debter
                 if 'owes' in payer and Util().encodeEmail(debteremail) in payer['owes']:
                     finalamount  = payer['owes'][Util().encodeEmail(debteremail)] - amount
                     if finalamount < 0:  # debter now owes payor, payor no longer owes debter
-                        self.db.storage.get_collection('users').find_one_and_update({'_id': debteremail}, {'$set': {f'owes.{Util().encodeEmail(payeremail)}': abs(finalamount)}})
-                        self.db.storage.get_collection('users').find_one_and_update({'_id': payeremail}, {'$unset': {f'owes.{Util().encodeEmail(debteremail)}': 0}})
+                        self.storage.get_collection('users').find_one_and_update({'_id': debteremail}, {'$set': {f'owes.{Util().encodeEmail(payeremail)}': abs(finalamount)}})
+                        self.storage.get_collection('users').find_one_and_update({'_id': payeremail}, {'$unset': {f'owes.{Util().encodeEmail(debteremail)}': 0}})
                     else: # payer still owes debter but just a lesser amount
-                        self.db.storage.get_collection('users').find_one_and_update({'_id': payeremail}, {'$set': {f'owes.{Util().encodeEmail(debteremail)}': finalamount}})
+                        self.storage.get_collection('users').find_one_and_update({'_id': payeremail}, {'$set': {f'owes.{Util().encodeEmail(debteremail)}': finalamount}})
                 else: # debter owes payer already or they don't have any interactions yet
-                    debter = self.db.storage.get_collection('users').find_one({'_id': debteremail})
+                    debter = self.storage.get_collection('users').find_one({'_id': debteremail})
                     originalamount = 0
                     if 'owes' in debter and Util().encodeEmail(payeremail) in debter['owes']:
                         originalamount = debter['owes'][Util().encodeEmail(payeremail)]
                     print(f"original amount is {originalamount}")
-                    self.db.storage.get_collection('users').find_one_and_update({'_id': debteremail}, {'$set': {f'owes.{Util().encodeEmail(payeremail)}': originalamount+amount}})
+                    self.storage.get_collection('users').find_one_and_update({'_id': debteremail}, {'$set': {f'owes.{Util().encodeEmail(payeremail)}': originalamount+amount}})
 
         # delete pending expense
         self.db.storage.get_collection(
             'groups').find_one_and_update({'_id': groupcode}, {'$pull': {f"pendingexpenses": {"expensename": expensename}}})
+    
+
+
+class Authenticator(Database):
+    def sign_up(self, email, p, confirmp, nickname, session: dict):
+        try:
+            emailregex = re.compile(
+                r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
+            if not re.fullmatch(emailregex, email):
+                return (False, 'Invalid email')
+            elif p != confirmp:
+                return (False, 'Confirm passwords doesn\'t match')
+            elif len(nickname) == 0:
+                return (False, 'Name can\'t be empty')
+            self.db.insert_data(
+                'users', {'_id': email, 'password': p, 'nickname': nickname, 'groups': [], 'tempexpenses': {}})  # temp expenses can potentially become official expense once user submit
+            self.email = email
+            session['email'] = email
+            return (True, None)
+        except Exception:
+            return (False, 'Account with this email already exists')
+
+    # attempt to login the user, if successful store user info inside session
+    def login(self, p, session: dict):
+        doc = self.storage.get_collection(
+            'users').find_one({'_id': self.email, 'password': p})
+        if not doc or len(doc) == 0:
+            return False
+        session['email'] = self.email
+        return True
 
 
 
