@@ -18,6 +18,13 @@
       },
       audio: false,
     };
+    var constraints2 = {
+        video: {
+          width: { ideal: 4096 },
+          height: { ideal: 2160 }
+      },
+      audio: false,
+    }
     function startup() {
       video = document.getElementById('video');
       canvas = document.getElementById('canvas');
@@ -29,9 +36,12 @@
         video.srcObject = stream;
         video.play();
       })
-
       .catch(function(err) {
-        console.log("An error occurred: " + err);
+            navigator.mediaDevices.getUserMedia(constraints2)
+              .then(function(stream) {
+                video.srcObject = stream;
+                video.play();
+          });
       });
 
       video.addEventListener('canplay', function(ev){
