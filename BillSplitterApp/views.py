@@ -150,8 +150,6 @@ def scanfile(request, **kwargs):
         allitems = scanner.aspriceScan("photo.png")
         db.submit_scanneditems(groupcode, allitems)
         result = db.decrement_scans_allowed()
-        if not result:
-            return redirect(f'/landing/groups/{db.get_group_index(groupcode)}')
         # PIL.Image.open("photo.png").show()
         
         return redirect(f'/landing/groups/{db.get_group_index(groupcode)}')
