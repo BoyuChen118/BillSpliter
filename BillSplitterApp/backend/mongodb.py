@@ -374,7 +374,7 @@ class Database:
     
     # decrement the number of times a user can use the scanner
     def decrement_scans_allowed(self):
-        if self.storage.get_collection('users').find_one_and_update({'_id': self.email})['scans_allowed'] > 0:
+        if self.storage.get_collection('users').find_one({'_id': self.email})['scans_allowed'] > 0:
             self.storage.get_collection('users').find_one_and_update({'_id': self.email}, {'$inc': {'scans_allowed': -1}})
         else:
             return False

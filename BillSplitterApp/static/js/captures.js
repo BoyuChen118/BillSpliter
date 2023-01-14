@@ -8,18 +8,25 @@
     var canvas = null;
     var photo = null;
     var startbutton1 = null;
-  
+    var constraints = { 
+      video: {
+          width: { ideal: 4096 },
+          height: { ideal: 2160 } 
+      },
+      audio: false
+    };
     function startup() {
       video = document.getElementById('video');
       canvas = document.getElementById('canvas');
       photo = document.getElementById('photo');
       startbutton1 = document.getElementById('startbutton1');
   
-      navigator.mediaDevices.getUserMedia({video: true, audio: false})
+      navigator.mediaDevices.getUserMedia(constraints)
       .then(function(stream) {
         video.srcObject = stream;
         video.play();
       })
+      
       .catch(function(err) {
         console.log("An error occurred: " + err);
       });
