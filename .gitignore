@@ -5,3 +5,4 @@ BillSplitter/strings.py
 BillSplitter/__pycache__/*
 BillSplitterApp/__pycache__/*
 BillSplitterApp/backend/__pycache__/*
+db.sqlite3

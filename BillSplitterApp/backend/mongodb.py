@@ -104,7 +104,7 @@ class Database:
     def create_group(self, groupname):
         randomcode = ''.join(random.choice(
             string.ascii_uppercase + string.digits) for _ in range(8))
-        self.db.insert_data(
+        self.insert_data(
             'groups', {'_id': randomcode, 'name': groupname, 'members': [], 'ledger': []})
         self.join_group(randomcode)
 
@@ -369,9 +369,15 @@ class Database:
                     self.storage.get_collection('users').find_one_and_update({'_id': debteremail}, {'$set': {f'owes.{Util().encodeEmail(payeremail)}': originalamount+amount}})
 
         # delete pending expense
-        self.db.storage.get_collection(
+        self.storage.get_collection(
             'groups').find_one_and_update({'_id': groupcode}, {'$pull': {f"pendingexpenses": {"expensename": expensename}}})
     
+    # decrement the number of times a user can use the scanner
+    def decrement_scans_allowed(self):
+        if self.storage.get_collection('users').find_one_and_update({'_id': self.email})['scans_allowed'] > 0:
+            self.storage.get_collection('users').find_one_and_update({'_id': self.email}, {'$inc': {'scans_allowed': -1}})
+        else:
+            return False
 
 
 class Authenticator(Database):
@@ -385,8 +391,8 @@ class Authenticator(Database):
                 return (False, 'Confirm passwords doesn\'t match')
             elif len(nickname) == 0:
                 return (False, 'Name can\'t be empty')
-            self.db.insert_data(
-                'users', {'_id': email, 'password': p, 'nickname': nickname, 'groups': [], 'tempexpenses': {}})  # temp expenses can potentially become official expense once user submit
+            self.insert_data(
+                'users', {'_id': email, 'password': p, 'nickname': nickname, 'groups': [], 'tempexpenses': {}, 'scans_allowed': 2})
             self.email = email
             session['email'] = email
             return (True, None)

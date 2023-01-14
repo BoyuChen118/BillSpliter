@@ -34,12 +34,11 @@ def signup(request):
     data = request.GET
     if 'email' in data and 'pass' in data and 'name' in data and 'confirmpass' in data:
         auth = Authenticator(data.get('email'))
-        auth_success = auth.sign_up(data.get('pass'), data.get('confirmpass'), data.get('name'), request.session)
+        auth_success = auth.sign_up(data.get('email'), data.get('pass'), data.get('confirmpass'), data.get('name'), request.session)
         if not auth_success[0]:
             return render(request, 'signup.html', {'auth_success': auth_success[0], 'reason': auth_success[1]})
         else:
             response = redirect(f'/landing/home/')
-            request.session['email'] = data.get('email')
             return response
     return render(request, 'signup.html')
 
@@ -150,6 +149,9 @@ def scanfile(request, **kwargs):
         urllib.request.urlretrieve(img_string, "photo.png")
         allitems = scanner.aspriceScan("photo.png")
         db.submit_scanneditems(groupcode, allitems)
+        result = db.decrement_scans_allowed()
+        if not result:
+            return redirect(f'/landing/groups/{db.get_group_index(groupcode)}')
         # PIL.Image.open("photo.png").show()
         
         return redirect(f'/landing/groups/{db.get_group_index(groupcode)}')
