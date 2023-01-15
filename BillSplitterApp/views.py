@@ -44,6 +44,9 @@ def signup(request):
 
 
 def landing(request, **kwargs):
+    if 'email' not in request.session:
+        response = redirect(f'/')
+        return response
     db = Database(request.session['email'])
     page = kwargs.get('page', None)
     # user is accessing groups[groupindex] at landing page
@@ -116,6 +119,9 @@ def landing(request, **kwargs):
 
 # survey send out to everyone to collect info about who ordered what
 def survey(request, **kwargs):
+    if 'email' not in request.session:
+        response = redirect(f'/')
+        return response
     expensename, groupcode = kwargs.get('expensename'), kwargs.get('groupcode')
     db = Database(request.session['email'])
     finalitems = Util().get_items(db.get_pending_expenses(groupcode), expensename)
@@ -130,6 +136,9 @@ def survey(request, **kwargs):
 
 # page to display what each person ordered, user can cancel the pending expense while there're still people who haven't completed their survey
 def results(request, **kwargs):
+    if 'email' not in request.session:
+        response = redirect(f'/')
+        return response
     expensename, groupcode, state = kwargs.get('expensename'), kwargs.get('groupcode'), kwargs.get('state')
     db = Database(request.session['email'])
     surveydata = db.get_survey_data(groupcode, expensename)
@@ -142,6 +151,9 @@ def results(request, **kwargs):
 
 
 def scanfile(request, **kwargs):
+    if 'email' not in request.session:
+        response = redirect(f'/')
+        return response
     groupcode = kwargs.get('groupcode')
     db = Database(request.session['email'])
     if request.method == 'POST':
